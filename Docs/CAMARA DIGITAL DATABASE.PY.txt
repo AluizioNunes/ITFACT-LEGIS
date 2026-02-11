@@ -1,0 +1,314 @@
+"""
+Configuração do banco de dados PostgreSQL
+SQLAlchemy 2.0 com suporte async e sync
+"""
+
+from sqlalchemy import create_engine, event, pool
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from typing import Generator, AsyncGenerator
+import logging
+
+from app.core.config import settings
+
+logger = logging.getLogger(__name__)
+
+# ============================================================================
+# BASE CLASS
+# ============================================================================
+
+Base = declarative_base()
+
+# ============================================================================
+# SYNC ENGINE (para migrations e scripts)
+# ============================================================================
+
+engine = create_engine(
+    settings.DATABASE_URL,
+    echo=settings.get_db_echo(),
+    pool_size=settings.DATABASE_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_OVERFLOW,
+    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+    pool_recycle=settings.DATABASE_POOL_RECYCLE,
+    pool_pre_ping=True,  # Verifica conexão antes de usar
+)
+
+# Session factory (sync)
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine,
+    class_=Session,
+)
+
+# ============================================================================
+# ASYNC ENGINE (para FastAPI endpoints)
+# ============================================================================
+
+async_engine = create_async_engine(
+    settings.ASYNC_DATABASE_URL,
+    echo=settings.get_db_echo(),
+    pool_size=settings.DATABASE_POOL_SIZE,
+    max_overflow=settings.DATABASE_MAX_OVERFLOW,
+    pool_timeout=settings.DATABASE_POOL_TIMEOUT,
+    pool_recycle=settings.DATABASE_POOL_RECYCLE,
+    pool_pre_ping=True,
+)
+
+# Async session factory
+AsyncSessionLocal = async_sessionmaker(
+    async_engine,
+    class_=AsyncSession,
+    expire_on_commit=False,
+    autocommit=False,
+    autoflush=False,
+)
+
+# ============================================================================
+# DEPENDENCY INJECTION
+# ============================================================================
+
+def get_db() -> Generator[Session, None, None]:
+    """
+    Dependency injection para obter sessão do banco (SYNC)
+    
+    Usage:
+        @app.get("/items")
+        def read_items(db: Session = Depends(get_db)):
+            items = db.query(Item).all()
+            return items
+    """
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+
+
+async def get_async_db() -> AsyncGenerator[AsyncSession, None]:
+    """
+    Dependency injection para obter sessão do banco (ASYNC)
+    
+    Usage:
+        @app.get("/items")
+        async def read_items(db: AsyncSession = Depends(get_async_db)):
+            result = await db.execute(select(Item))
+            items = result.scalars().all()
+            return items
+    """
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+        finally:
+            await session.close()
+
+
+# ============================================================================
+# DATABASE EVENTS
+# ============================================================================
+
+@event.listens_for(engine, "connect")
+def receive_connect(dbapi_conn, connection_record):
+    """
+    Evento executado quando uma nova conexão é estabelecida
+    """
+    logger.debug("Nova conexão estabelecida com o banco de dados")
+
+
+@event.listens_for(engine, "checkout")
+def receive_checkout(dbapi_conn, connection_record, connection_proxy):
+    """
+    Evento executado quando uma conexão é retirada do pool
+    """
+    pass  # Pode adicionar lógica de monitoramento aqui
+
+
+@event.listens_for(engine, "checkin")
+def receive_checkin(dbapi_conn, connection_record):
+    """
+    Evento executado quando uma conexão é devolvida ao pool
+    """
+    pass  # Pode adicionar lógica de monitoramento aqui
+
+
+# ============================================================================
+# UTILITY FUNCTIONS
+# ============================================================================
+
+def create_tables():
+    """
+    Cria todas as tabelas no banco de dados
+    
+    WARNING: Use Alembic migrations em produção!
+    Esta função é útil apenas para desenvolvimento/testes.
+    """
+    logger.warning("Criando todas as tabelas no banco de dados...")
+    Base.metadata.create_all(bind=engine)
+    logger.info("✓ Tabelas criadas com sucesso!")
+
+
+def drop_tables():
+    """
+    Remove todas as tabelas do banco de dados
+    
+    WARNING: Esta operação é DESTRUTIVA e IRREVERSÍVEL!
+    Use apenas em desenvolvimento/testes.
+    """
+    if settings.is_production():
+        raise RuntimeError("NUNCA execute drop_tables() em produção!")
+    
+    logger.warning("⚠️  REMOVENDO TODAS AS TABELAS DO BANCO DE DADOS...")
+    Base.metadata.drop_all(bind=engine)
+    logger.info("Tabelas removidas!")
+
+
+async def check_database_connection() -> bool:
+    """
+    Verifica se a conexão com o banco está OK
+    
+    Returns:
+        bool: True se conectado, False caso contrário
+    """
+    try:
+        async with AsyncSessionLocal() as session:
+            await session.execute("SELECT 1")
+        logger.info("✓ Banco de dados conectado")
+        return True
+    except Exception as e:
+        logger.error(f"✗ Erro ao conectar com banco de dados: {e}")
+        return False
+
+
+def get_table_names() -> list[str]:
+    """
+    Retorna lista com nomes de todas as tabelas
+    
+    Returns:
+        list[str]: Lista de nomes de tabelas
+    """
+    return [table.name for table in Base.metadata.sorted_tables]
+
+
+def get_table_count() -> int:
+    """
+    Retorna quantidade de tabelas registradas no Base.metadata
+    
+    Returns:
+        int: Quantidade de tabelas
+    """
+    return len(Base.metadata.tables)
+
+
+# ============================================================================
+# TRANSACTION MANAGEMENT
+# ============================================================================
+
+class DatabaseTransaction:
+    """
+    Context manager para gerenciar transações do banco
+    
+    Usage:
+        async with DatabaseTransaction() as db:
+            # Fazer operações no banco
+            db.add(new_item)
+            # Commit automático ao sair do contexto
+            # Rollback automático se houver exceção
+    """
+    
+    def __init__(self):
+        self.session: AsyncSession | None = None
+    
+    async def __aenter__(self) -> AsyncSession:
+        """Entra no contexto e retorna sessão"""
+        self.session = AsyncSessionLocal()
+        return self.session
+    
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        """
+        Sai do contexto
+        
+        - Se não houver exceção: commit
+        - Se houver exceção: rollback
+        """
+        try:
+            if exc_type is None:
+                # Sem exceção: commit
+                await self.session.commit()
+            else:
+                # Com exceção: rollback
+                await self.session.rollback()
+                logger.error(f"Transação revertida devido a erro: {exc_val}")
+        finally:
+            await self.session.close()
+
+
+# ============================================================================
+# DATABASE INITIALIZATION
+# ============================================================================
+
+async def init_database():
+    """
+    Inicializa o banco de dados
+    
+    - Cria tabelas (se necessário)
+    - Verifica conexão
+    - Executa seeds (se configurado)
+    """
+    logger.info("Inicializando banco de dados...")
+    
+    # Verificar conexão
+    connected = await check_database_connection()
+    if not connected:
+        raise RuntimeError("Não foi possível conectar ao banco de dados!")
+    
+    # Em desenvolvimento, criar tabelas se não existirem
+    if settings.is_development():
+        create_tables()
+    
+    # Log de estatísticas
+    table_count = get_table_count()
+    logger.info(f"✓ {table_count} tabelas registradas no metadata")
+    
+    logger.info("✓ Banco de dados inicializado com sucesso!")
+
+
+async def close_database():
+    """
+    Fecha conexões com o banco de dados
+    """
+    logger.info("Fechando conexões com banco de dados...")
+    
+    await async_engine.dispose()
+    engine.dispose()
+    
+    logger.info("✓ Conexões fechadas!")
+
+
+# ============================================================================
+# EXEMPLO DE USO
+# ============================================================================
+
+if __name__ == "__main__":
+    import asyncio
+    
+    async def test_connection():
+        """Testa conexão com banco"""
+        print("Testando conexão com banco de dados...")
+        
+        # Inicializar
+        await init_database()
+        
+        # Testar query
+        async with AsyncSessionLocal() as session:
+            result = await session.execute("SELECT current_database(), version()")
+            row = result.fetchone()
+            print(f"\nBanco de dados: {row[0]}")
+            print(f"Versão PostgreSQL: {row[1]}")
+        
+        # Fechar
+        await close_database()
+        
+        print("\n✓ Teste concluído!")
+    
+    asyncio.run(test_connection())

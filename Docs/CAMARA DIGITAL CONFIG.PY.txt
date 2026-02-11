@@ -1,0 +1,351 @@
+"""
+Configurações centralizadas da aplicação
+Todas as variáveis de ambiente e configurações em um único lugar
+"""
+
+from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import Field, field_validator, PostgresDsn, RedisDsn
+from typing import List, Optional, Any
+import secrets
+
+
+class Settings(BaseSettings):
+    """
+    Configurações da aplicação usando Pydantic Settings v2
+    """
+    
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        env_file_encoding="utf-8",
+        case_sensitive=True,
+        extra="ignore"
+    )
+    
+    # ========================================================================
+    # INFORMAÇÕES GERAIS
+    # ========================================================================
+    
+    PROJECT_NAME: str = "ITFACT-LEGIS API"
+    VERSION: str = "1.0.0"
+    DESCRIPTION: str = "Sistema de Gestão de Protocolos e Documentos Legislativos - CMM"
+    API_V1_STR: str = "/api/v1"
+    
+    ENVIRONMENT: str = Field(default="development", pattern="^(development|staging|production)$")
+    DEBUG: bool = Field(default=True)
+    
+    # ========================================================================
+    # SEGURANÇA
+    # ========================================================================
+    
+    # Secret key para assinatura de tokens JWT
+    SECRET_KEY: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(32),
+        description="Chave secreta para JWT. DEVE ser alterada em produção!"
+    )
+    
+    # Algoritmo de hash para JWT
+    ALGORITHM: str = "HS256"
+    
+    # Tempo de expiração do token (minutos)
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 120  # 2 horas (igual ao sistema antigo)
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
+    
+    # Chave de criptografia (migrado do web.config - ALTERAR EM PRODUÇÃO!)
+    ENCRYPTION_KEY: str = Field(
+        default="Gr4_41rp0rT",  # DO NOT USE IN PRODUCTION
+        description="Chave de criptografia legada do sistema antigo"
+    )
+    ENCRYPTION_SALT: str = Field(
+        default="pr8t8n1kh8n",  # DO NOT USE IN PRODUCTION
+        description="Salt de criptografia legado do sistema antigo"
+    )
+    
+    # ========================================================================
+    # BANCO DE DADOS PRINCIPAL (PostgreSQL)
+    # ========================================================================
+    
+    DATABASE_HOST: str = "localhost"
+    DATABASE_PORT: int = 5432
+    DATABASE_USER: str = "legis_user"
+    DATABASE_PASSWORD: str = "legis_password_2026"
+    DATABASE_NAME: str = "bd_cmm_novo"
+    
+    # Connection pool
+    DATABASE_POOL_SIZE: int = 20
+    DATABASE_MAX_OVERFLOW: int = 40
+    DATABASE_POOL_TIMEOUT: int = 30
+    DATABASE_POOL_RECYCLE: int = 3600  # 1 hora
+    
+    # Echo SQL queries (apenas em desenvolvimento)
+    DATABASE_ECHO: bool = Field(default=False)
+    
+    @property
+    def DATABASE_URL(self) -> str:
+        """
+        Monta a URL de conexão do PostgreSQL
+        """
+        return (
+            f"postgresql://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
+            f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+        )
+    
+    @property
+    def ASYNC_DATABASE_URL(self) -> str:
+        """
+        URL de conexão assíncrona (para operações async)
+        """
+        return (
+            f"postgresql+asyncpg://{self.DATABASE_USER}:{self.DATABASE_PASSWORD}"
+            f"@{self.DATABASE_HOST}:{self.DATABASE_PORT}/{self.DATABASE_NAME}"
+        )
+    
+    # ========================================================================
+    # BANCO DE DADOS LEGADO (SQL Server) - Para migração
+    # ========================================================================
+    
+    LEGACY_DB_SERVER: str = "(local)"
+    LEGACY_DB_NAME: str = "bd_cmm"
+    LEGACY_DB_USER: str = "iusr_cmm"
+    LEGACY_DB_PASSWORD: str = "ProtonCmm4321"  # DO NOT USE IN NEW SYSTEM
+    LEGACY_DB_TIMEOUT: int = 30
+    
+    @property
+    def LEGACY_DATABASE_URL(self) -> str:
+        """
+        Connection string do SQL Server legado (apenas para migração)
+        """
+        return (
+            f"mssql+pyodbc://{self.LEGACY_DB_USER}:{self.LEGACY_DB_PASSWORD}"
+            f"@{self.LEGACY_DB_SERVER}/{self.LEGACY_DB_NAME}"
+            f"?driver=ODBC+Driver+17+for+SQL+Server"
+            f"&timeout={self.LEGACY_DB_TIMEOUT}"
+        )
+    
+    # ========================================================================
+    # REDIS (Cache e Sessões)
+    # ========================================================================
+    
+    REDIS_HOST: str = "localhost"
+    REDIS_PORT: int = 6379
+    REDIS_DB: int = 0
+    REDIS_PASSWORD: Optional[str] = None
+    REDIS_TIMEOUT: int = 5
+    
+    # Cache TTL (segundos)
+    CACHE_TTL_SHORT: int = 300  # 5 minutos
+    CACHE_TTL_MEDIUM: int = 1800  # 30 minutos
+    CACHE_TTL_LONG: int = 3600  # 1 hora
+    CACHE_TTL_VERY_LONG: int = 86400  # 24 horas
+    
+    @property
+    def REDIS_URL(self) -> str:
+        """
+        Monta a URL de conexão do Redis
+        """
+        if self.REDIS_PASSWORD:
+            return f"redis://:{self.REDIS_PASSWORD}@{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+        return f"redis://{self.REDIS_HOST}:{self.REDIS_PORT}/{self.REDIS_DB}"
+    
+    # ========================================================================
+    # MONGODB (Armazenamento de Arquivos)
+    # ========================================================================
+    
+    MONGODB_HOST: str = "localhost"
+    MONGODB_PORT: int = 27017
+    MONGODB_USER: Optional[str] = None
+    MONGODB_PASSWORD: Optional[str] = None
+    MONGODB_DATABASE: str = "legis_files"
+    MONGODB_AUTH_SOURCE: str = "admin"
+    
+    @property
+    def MONGODB_URL(self) -> str:
+        """
+        Monta a URL de conexão do MongoDB
+        """
+        if self.MONGODB_USER and self.MONGODB_PASSWORD:
+            return (
+                f"mongodb://{self.MONGODB_USER}:{self.MONGODB_PASSWORD}"
+                f"@{self.MONGODB_HOST}:{self.MONGODB_PORT}"
+                f"/{self.MONGODB_DATABASE}?authSource={self.MONGODB_AUTH_SOURCE}"
+            )
+        return f"mongodb://{self.MONGODB_HOST}:{self.MONGODB_PORT}/{self.MONGODB_DATABASE}"
+    
+    # ========================================================================
+    # ARMAZENAMENTO DE ARQUIVOS
+    # ========================================================================
+    
+    # Sistema de arquivos legado (para migração)
+    LEGACY_FILES_PATH_Z: str = "Z:\\imagemprocesso"
+    LEGACY_FILES_PATH_G: str = "G:\\sapl"
+    
+    # Novo sistema de arquivos
+    FILES_STORAGE_TYPE: str = Field(
+        default="filesystem",
+        pattern="^(filesystem|s3|azure)$"
+    )
+    FILES_BASE_PATH: str = "/data/files"
+    FILES_MAX_SIZE: int = 2147483648  # 2GB (igual ao sistema antigo)
+    FILES_ALLOWED_EXTENSIONS: List[str] = [
+        ".pdf", ".docx", ".doc", ".xlsx", ".xls", 
+        ".jpg", ".jpeg", ".png", ".gif", 
+        ".p7s",  # Assinatura digital
+    ]
+    
+    # S3-Compatible Storage (MinIO/AWS S3)
+    S3_ENDPOINT_URL: Optional[str] = None
+    S3_ACCESS_KEY: Optional[str] = None
+    S3_SECRET_KEY: Optional[str] = None
+    S3_BUCKET_NAME: str = "legis-files"
+    S3_REGION: str = "us-east-1"
+    
+    # ========================================================================
+    # CORS
+    # ========================================================================
+    
+    BACKEND_CORS_ORIGINS: List[str] = Field(
+        default=[
+            "http://localhost:3000",  # React Dev
+            "http://localhost:5173",  # Vite Dev
+            "http://localhost:8080",  # Vue Dev
+            "http://localhost:4200",  # Angular Dev
+        ]
+    )
+    
+    @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+    @classmethod
+    def assemble_cors_origins(cls, v: str | List[str]) -> List[str]:
+        """
+        Converte string separada por vírgulas em lista
+        """
+        if isinstance(v, str) and not v.startswith("["):
+            return [i.strip() for i in v.split(",")]
+        elif isinstance(v, list):
+            return v
+        raise ValueError(v)
+    
+    # ========================================================================
+    # ASSINATURA DIGITAL (ICP-Brasil)
+    # ========================================================================
+    
+    # Lacuna PKI
+    LACUNA_PKI_LICENSE_PATH: Optional[str] = None
+    LACUNA_PKI_API_URL: str = "https://api.lacunasoftware.com"
+    
+    # Certificados aceitos
+    ACCEPTED_CERTIFICATE_TYPES: List[str] = [
+        "ICP-Brasil",
+        "e-CPF",
+        "e-CNPJ",
+    ]
+    
+    # ========================================================================
+    # INTEGRAÇÃO EXTERNA (APIs de terceiros)
+    # ========================================================================
+    
+    # API Sessão Plenária (legado)
+    SESSAO_PLENARIA_API_URL: str = "https://expedienteh.cmm.am.gov.br/api/ikon-services"
+    SESSAO_PLENARIA_API_TOKEN: Optional[str] = None  # NÃO usar o token do web.config!
+    
+    # ========================================================================
+    # LIGHTRAG (RAG com LLM para pesquisa inteligente)
+    # ========================================================================
+    
+    LIGHTRAG_ENABLED: bool = True
+    LIGHTRAG_WORKING_DIR: str = "./data/lightrag"
+    LIGHTRAG_LLM_MODEL: str = "gpt-4o-mini"  # ou "claude-3-haiku"
+    LIGHTRAG_EMBEDDING_MODEL: str = "text-embedding-3-small"
+    
+    # OpenAI
+    OPENAI_API_KEY: Optional[str] = None
+    
+    # Anthropic
+    ANTHROPIC_API_KEY: Optional[str] = None
+    
+    # ========================================================================
+    # LOGGING
+    # ========================================================================
+    
+    LOG_LEVEL: str = "INFO"
+    LOG_FORMAT: str = "json"  # json ou text
+    LOG_FILE_PATH: Optional[str] = "./logs/app.log"
+    LOG_ROTATION: str = "100 MB"
+    LOG_RETENTION: str = "30 days"
+    
+    # ========================================================================
+    # RATE LIMITING
+    # ========================================================================
+    
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 60
+    RATE_LIMIT_PER_HOUR: int = 1000
+    
+    # ========================================================================
+    # BACKGROUND TASKS
+    # ========================================================================
+    
+    CELERY_BROKER_URL: Optional[str] = None
+    CELERY_RESULT_BACKEND: Optional[str] = None
+    
+    # ========================================================================
+    # EMAILS
+    # ========================================================================
+    
+    SMTP_HOST: Optional[str] = None
+    SMTP_PORT: int = 587
+    SMTP_USER: Optional[str] = None
+    SMTP_PASSWORD: Optional[str] = None
+    SMTP_FROM_EMAIL: str = "noreply@cmm.am.gov.br"
+    SMTP_FROM_NAME: str = "Sistema LEGIS - CMM"
+    
+    # ========================================================================
+    # FEATURES FLAGS
+    # ========================================================================
+    
+    FEATURE_ASSINATURA_DIGITAL: bool = True
+    FEATURE_LIGHTRAG_SEARCH: bool = True
+    FEATURE_WEBDAV: bool = False  # WebDAV foi removido na migração
+    FEATURE_MINUTAS: bool = True
+    FEATURE_PROPOSITURAS: bool = True
+    
+    # ========================================================================
+    # MIGRAÇÃO
+    # ========================================================================
+    
+    MIGRATION_MODE: bool = False  # Ativar durante migração de dados
+    MIGRATION_BATCH_SIZE: int = 1000
+    MIGRATION_DRY_RUN: bool = False
+    
+    # ========================================================================
+    # MÉTODOS AUXILIARES
+    # ========================================================================
+    
+    def is_production(self) -> bool:
+        """Verifica se está em produção"""
+        return self.ENVIRONMENT == "production"
+    
+    def is_development(self) -> bool:
+        """Verifica se está em desenvolvimento"""
+        return self.ENVIRONMENT == "development"
+    
+    def get_db_echo(self) -> bool:
+        """Retorna se deve fazer echo de queries SQL"""
+        return self.DATABASE_ECHO and self.is_development()
+
+
+# Instância global de configurações
+settings = Settings()
+
+
+# Validações de segurança em produção
+if settings.is_production():
+    if settings.SECRET_KEY == secrets.token_urlsafe(32):
+        raise ValueError("SECRET_KEY deve ser definida em produção!")
+    
+    if settings.ENCRYPTION_KEY == "Gr4_41rp0rT":
+        raise ValueError("ENCRYPTION_KEY legada não pode ser usada em produção!")
+    
+    if settings.DEBUG:
+        raise ValueError("DEBUG não pode estar ativo em produção!")
+    
+    if settings.DATABASE_ECHO:
+        raise ValueError("DATABASE_ECHO não pode estar ativo em produção!")

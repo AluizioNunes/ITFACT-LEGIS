@@ -1,0 +1,371 @@
+# Análise Completa do Banco de Dados bd_cmm
+## Sistema de Gestão Eletrônica de Documentos (GED) Legislativo
+
+**Data da Análise:** 04 de fevereiro de 2026  
+**Banco de Dados:** bd_cmm (SQL Server)  
+**Data de Criação do BD:** 2024-03-03  
+**Total de Tabelas:** 477
+
+---
+
+## 1. VISÃO GERAL DO SISTEMA
+
+Este é um sistema GED (Gestão Eletrônica de Documentos) voltado para ambiente legislativo, com foco em tramitação de documentos, proposições legislativas e gestão de processos parlamentares.
+
+### Características Principais
+- Sistema multi-tenant (suporta múltiplas empresas/órgãos)
+- Gestão completa do ciclo de vida de documentos
+- Workflow legislativo configurável
+- Sistema de assinaturas digitais
+- Auditoria completa de operações
+- Gestão de arquivos físicos e digitais
+
+---
+
+## 2. MÓDULOS FUNCIONAIS PRINCIPAIS
+
+### 2.1 GESTÃO DE PROTOCOLOS E DOCUMENTOS
+**Tabelas Core:** `tbl_protocolo_*` (47 tabelas)
+
+**Métricas:**
+- **636.971 protocolos** cadastrados
+- **2.672.564 movimentações** de protocolo
+- **1.258.875 documentos** vinculados
+- **496.555 assinaturas** digitais
+- **640.750 interessados** vinculados a protocolos
+
+**Principais Funcionalidades:**
+- Protocolo de entrada/saída de documentos
+- Tramitação entre órgãos
+- Gestão de anexos e apensamentos
+- Assinaturas digitais e físicas
+- Controle de prazos e respostas
+- Distribuição e redistribuição
+- Sistema de visualizadores (1.558.929 registros)
+- Empréstimos e expedições
+- Cancelamentos e eliminações
+
+### 2.2 PROPOSIÇÕES LEGISLATIVAS
+**Tabelas Core:** `tbl_propositura_legislativa_*` (28 tabelas)
+
+**Métricas:**
+- **77.492 proposições** legislativas
+- **309.301 tramitações**
+- **307.419 históricos** de fase
+- **279.762 documentos** vinculados
+- **121.768 anexos**
+- **77.797 autores**
+- **33 emendas** cadastradas
+
+**Principais Funcionalidades:**
+- Autuação de proposições
+- Tramitação por comissões
+- Gestão de fases (elaboração, análise, votação)
+- Emendas e subemendas
+- Pareceres de comissões
+- Controle de prazos legislativos
+- Arquivamento e desarquivamento
+- Juntada de proposições
+
+### 2.3 MINUTAS LEGISLATIVAS
+**Tabelas Core:** `tbl_minuta_legislativa_*` (11 tabelas)
+
+**Métricas:**
+- **42.495 minutas** legislativas
+- **85.043 movimentações**
+- **42.885 pessoas** envolvidas
+- **32.149 atributos** customizados
+- **1.581 arquivos** digitais
+
+**Principais Funcionalidades:**
+- Redação de minutas
+- Assinatura de documentos (31.963 assinaturas via login/senha)
+- Controle de versões
+- Movimentação entre setores
+- Arquivamento temporário
+
+### 2.4 GESTÃO DE ARQUIVO
+**Tabelas Core:** `tbl_arquivo_*` (15 tabelas)
+
+**Métricas:**
+- **4.467 inventários** de arquivo
+- **17.819 arquivos** digitais
+- **4.534 movimentações**
+- **72.859 vínculos** com protocolos
+- **22 empréstimos** ativos
+
+**Principais Funcionalidades:**
+- Inventário de documentos
+- Arquivo corrente, intermediário e permanente
+- Gestão de caixas (724 caixas)
+- Eliminação controlada
+- Empréstimos
+- Etiquetagem
+
+### 2.5 ACERVO DOCUMENTAL
+**Tabelas Core:** `tbl_acervo_documento_*` (5 tabelas)
+
+**Métricas:**
+- **16.917 documentos** de acervo
+- **79.356 atributos** descritivos
+- **7 tipos** de acervo
+
+**Principais Funcionalidades:**
+- Catalogação de documentos históricos
+- Preservação digital
+- Metadados customizáveis
+- Gestão de estado de conservação
+
+### 2.6 SEGURANÇA E CONTROLE DE ACESSO
+**Tabelas Core:** `tbl_seg_*` (40 tabelas)
+
+**Métricas:**
+- **890 usuários** cadastrados
+- **20 perfis** de acesso
+- **5.094 funções** de perfil
+- **211.663 permissões** usuário-perfil-função
+- **3.003 permissões** especiais de acesso
+- **60 cargos**
+- **15 funções**
+
+**Principais Funcionalidades:**
+- Controle de acesso baseado em perfis
+- Permissões granulares por função
+- Usuários internos e externos
+- Grupos de usuários
+- Configurações por usuário
+- Histórico de acessos
+
+### 2.7 SISTEMA DE AUDITORIA E LOG
+**Tabelas Core:** `tbl_sistema_*` (25 tabelas)
+
+**Métricas:**
+- **9.971.339 registros** de histórico (MAIOR TABELA)
+- **1.512.637 logs** de sistema
+- **7.543 logs** de erro
+
+**Principais Funcionalidades:**
+- Rastreamento completo de operações
+- Logs de acesso e modificações
+- Correções e ajustes registrados
+- Mensagens do sistema
+- Relatórios e etiquetas
+
+### 2.8 SESSÕES PLENÁRIAS E COMISSÕES
+**Tabelas Core:** `tbl_legislatura_*`, `tbl_comissao_*`, `tbl_pauta_*`
+
+**Métricas:**
+- **7 legislaturas**
+- **8 sessões** legislativas
+- **186 sessões** plenárias
+- **1.364 presenças** registradas
+- **33 comissões** ativas
+- **431 membros** de comissões
+
+**Principais Funcionalidades:**
+- Controle de legislaturas
+- Gestão de sessões plenárias
+- Comissões permanentes e temporárias
+- Pautas de votação
+- Frequência parlamentar
+- Atas e documentos de sessão
+
+### 2.9 PARLAMENTARES E PARTIDOS
+**Tabelas Core:** `tbl_parlamentar_*`, `tbl_partido_politico`
+
+**Métricas:**
+- **47 parlamentares**
+- **19 mandatos**
+- **25 filiações** partidárias
+- **66 posições** em partidos
+- **35 partidos** políticos
+- **4 coligações**
+
+### 2.10 MÓDULOS INATIVOS/POUCO UTILIZADOS
+
+**Workflow (Fluxo de Trabalho):**
+- Todas as tabelas `tbl_fluxo_trabalho_*`: **0 registros**
+- Sistema configurado mas não utilizado
+
+**Contratos:**
+- Todas as tabelas `tbl_contrato_*`: **0 registros**
+- Módulo não implementado
+
+**Biblioteca (Sistema MARC):**
+- `tbl_biblioteca_marc` e tabelas relacionadas: **0 registros**
+- `tbl_biblioteca_publicacao`: **0 registros**
+
+**Notícias:**
+- `tbl_noticia_*`: **0 registros**
+
+**Solicitações:**
+- `tbl_solicitacao_*`: **0 registros**
+
+**E-Protocolo (Protocolo Eletrônico):**
+- `TBL_EPROTOCOLO`: **46 registros** (uso mínimo)
+- `TBL_EPROTOCOL_DOCUMENTO`: **58 registros**
+
+---
+
+## 3. TOP 20 TABELAS POR VOLUME DE DADOS
+
+| Posição | Tabela | Registros | Descrição |
+|---------|--------|-----------|-----------|
+| 1 | tbl_sistema_historico | 9.971.339 | Auditoria completa do sistema |
+| 2 | tbl_protocolo_movimento | 2.672.564 | Tramitações de protocolos |
+| 3 | tbl_protocolo_visualizador | 1.558.929 | Controle de visualizações |
+| 4 | tbl_sistema_log | 1.512.637 | Logs do sistema |
+| 5 | tbl_protocolo_documento | 1.258.875 | Documentos dos protocolos |
+| 6 | tbl_protocolo_interessado | 640.750 | Interessados em protocolos |
+| 7 | tbl_protocolo | 636.971 | Protocolos principais |
+| 8 | tbl_protocolo_arquivo | 619.666 | Arquivos dos protocolos |
+| 9 | tbl_documento_assinatura | 496.555 | Assinaturas de documentos |
+| 10 | tbl_protocolo_distribuicao | 427.003 | Distribuições |
+| 11 | tbl_protocolo_prazo_resposta | 361.146 | Controle de prazos |
+| 12 | tbl_propositura_legislativa_tramitacao | 309.301 | Tramitação legislativa |
+| 13 | tbl_propositura_legislativa_fase_historico | 307.419 | Fases das proposições |
+| 14 | tbl_propositura_legislativa_documento | 279.762 | Documentos legislativos |
+| 15 | tbl_protocolo_anexo | 265.197 | Anexos de protocolos |
+| 16 | tbl_seg_usuario_perfil_funcao | 211.663 | Permissões de usuários |
+| 17 | tbl_pesquisa_arquivo_bkp | 163.438 | Backup de pesquisas |
+| 18 | tbl_protocolo_assinatura | 157.888 | Assinaturas de protocolos |
+| 19 | tbl_propositura_legislativa_anexo | 121.768 | Anexos legislativos |
+| 20 | tbl_protocolo_fisico | 114.432 | Protocolos físicos |
+
+---
+
+## 4. ENTIDADES DE DOMÍNIO PRINCIPAIS
+
+### Classificação
+- **465 assuntos** cadastrados (sistema de classificação documental)
+- **278 órgãos** (estrutura organizacional)
+- **255 tipos** de documento
+- **26 situações** (status workflow)
+
+### Pessoas e Organizações
+- **11.476 interessados** (pessoas físicas e jurídicas)
+- **890 usuários** do sistema
+- **47 parlamentares**
+
+### Controle
+- **39 atributos** customizáveis
+- **11 motivos** de movimentação
+- **7 tipos** de acervo
+- **3 tipos** de acesso
+
+---
+
+## 5. INTEGRIDADE REFERENCIAL
+
+O banco possui **extensa rede de relacionamentos** com centenas de foreign keys conectando:
+
+- Protocolos ↔ Movimentos ↔ Interessados ↔ Órgãos
+- Proposições ↔ Fases ↔ Comissões ↔ Documentos
+- Usuários ↔ Perfis ↔ Funções ↔ Permissões
+- Documentos ↔ Assinaturas ↔ Tipos ↔ Atributos
+- Arquivos ↔ Protocolos ↔ Caixas ↔ Movimentações
+
+Todos os relacionamentos principais estão formalmente definidos via constraints FK no banco de dados.
+
+---
+
+## 6. TABELAS DE MIGRAÇÃO/INTEGRAÇÃO
+
+Existem diversas tabelas de mapeamento (de-para) indicando migrações de sistemas legados:
+
+- `de_para_autor` (181 registros)
+- `de_para_documento_tipo` (28 registros)
+- `de_para_fase` (84 registros)
+- `de_para_situacao_analise` (53 registros)
+- `de_para_usuario` (151 registros)
+- `de_para_unidade_*` (múltiplas tabelas)
+
+Tabelas com dados legados:
+- `SESAU`, `SESAU2` (1.886 registros cada)
+- `PGE`, `PGE2` (155 e 151 registros)
+- `igeprev` (105 registros)
+- `Completo` (1.268 registros)
+
+---
+
+## 7. PADRÕES DE NOMENCLATURA
+
+### Prefixos de Tabela
+- `tbl_` - Prefixo padrão para todas as tabelas
+- `TBL_` (maiúsculas) - Tabelas legacy (DOSSIE, EPROTOCOLO)
+
+### Prefixos de Coluna
+- `cod_` - Códigos/IDs
+- `txt_` - Campos de texto
+- `dt_` - Datas
+- `flg_` - Flags booleanos
+- `num_` - Números
+- `val_` - Valores
+
+### Padrões de Nome
+- `*_historico` - Tabelas de histórico
+- `*_temp` - Tabelas temporárias
+- `*_bkp` - Tabelas de backup
+- `*_numero` - Controle de numeração
+
+---
+
+## 8. OBSERVAÇÕES TÉCNICAS
+
+### Características do Sistema
+1. **Sistema Maduro**: Grande volume de dados históricos (9,9M+ registros de auditoria)
+2. **Uso Intenso**: 636K protocolos, 2,6M movimentações
+3. **Complexidade Alta**: 477 tabelas, centenas de FKs
+4. **Multi-tenant**: Suporte a múltiplas empresas/órgãos
+5. **Auditável**: Rastreamento completo de operações
+
+### Módulos Não Utilizados
+- Sistema de Workflow (configurado mas vazio)
+- Gestão de Contratos (não implementado)
+- Biblioteca MARC (não utilizado)
+- Sistema de Notícias (não utilizado)
+
+### Pontos de Atenção
+1. **Performance**: Tabela de histórico com 9,9M registros pode necessitar particionamento
+2. **Manutenção**: Muitas tabelas temporárias e de backup podem ser arquivadas
+3. **Módulos Inativos**: Considerar remoção de módulos não utilizados
+4. **Migração**: Tabelas de-para podem ser removidas após estabilização
+
+---
+
+## 9. RECOMENDAÇÕES
+
+### Performance
+- Considerar particionamento de `tbl_sistema_historico`
+- Revisar índices nas tabelas de maior volume
+- Implementar arquivamento de dados históricos
+
+### Manutenção
+- Arquivar ou remover tabelas `*_temp` e `*_bkp` desnecessárias
+- Documentar módulos inativos para eventual remoção
+- Padronizar nomenclatura (resolver inconsistência TBL_ vs tbl_)
+
+### Governança
+- Revisar necessidade de manter dados legados (SESAU, PGE, etc.)
+- Estabelecer política de retenção de dados de auditoria
+- Documentar regras de negócio dos módulos principais
+
+---
+
+## 10. CONCLUSÃO
+
+O banco de dados `bd_cmm` é um **sistema GED legislativo robusto e abrangente**, com foco em:
+- ✅ Gestão completa de protocolos e documentos
+- ✅ Tramitação legislativa
+- ✅ Controle de acesso e segurança
+- ✅ Auditoria detalhada
+- ✅ Gestão de arquivo
+
+O sistema está em **uso ativo e intenso**, com grande volume de dados acumulados e processos bem estabelecidos. A estrutura de dados é complexa mas bem organizada, com relacionamentos formalmente definidos e auditoria completa de operações.
+
+Alguns módulos (workflow, contratos, biblioteca) foram configurados mas não são utilizados, representando oportunidade de simplificação futura.
+
+---
+
+**Documento gerado em:** 04/02/2026  
+**Baseado em análise de:** 477 tabelas, centenas de FKs, 15,7M+ registros totais

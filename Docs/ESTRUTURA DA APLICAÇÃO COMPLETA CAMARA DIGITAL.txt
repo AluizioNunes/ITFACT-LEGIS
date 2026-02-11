@@ -1,0 +1,561 @@
+# 🏗️ ESTRUTURA COMPLETA DO PROJETO ITFACT-LEGIS
+
+**Gerado automaticamente por Claude**  
+**Data:** 04 de fevereiro de 2026  
+**Baseado em:** Sistema Proton (CMM) - 477 tabelas, 265 funcionalidades  
+
+---
+
+## 📁 ÁRVORE DE DIRETÓRIOS COMPLETA
+
+```
+C:\ITFACT-LEGIS-CODE\
+│
+├── 📦 apps\
+│   │
+│   ├── 🐍 fastapi-backend\                    # Backend Python + FastAPI
+│   │   ├── alembic\                           # Migrations do banco
+│   │   │   ├── versions\                      # Scripts de migração
+│   │   │   ├── env.py
+│   │   │   └── script.py.mako
+│   │   │
+│   │   ├── app\
+│   │   │   ├── __init__.py
+│   │   │   │
+│   │   │   ├── api\                           # Rotas da API
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── deps.py                    # Dependências injetáveis
+│   │   │   │   └── v1\
+│   │   │   │       ├── __init__.py
+│   │   │   │       ├── router.py              # Router principal
+│   │   │   │       └── endpoints\
+│   │   │   │           ├── __init__.py
+│   │   │   │           ├── auth.py            # Autenticação
+│   │   │   │           ├── protocolos.py      # 265 funcionalidades
+│   │   │   │           ├── tramitacao.py      # CRUD completo
+│   │   │   │           ├── minutas.py
+│   │   │   │           ├── assinaturas.py
+│   │   │   │           ├── proposituras.py
+│   │   │   │           ├── arquivos.py
+│   │   │   │           ├── relatorios.py
+│   │   │   │           ├── usuarios.py
+│   │   │   │           ├── search.py          # LightRAG
+│   │   │   │           └── ...                # 20+ endpoints
+│   │   │   │
+│   │   │   ├── core\                          # Core da aplicação
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── config.py                  # ✅ CRIADO
+│   │   │   │   ├── database.py                # Conexão PostgreSQL
+│   │   │   │   ├── redis.py                   # Conexão Redis
+│   │   │   │   ├── mongodb.py                 # Conexão MongoDB
+│   │   │   │   ├── security.py                # JWT, hashing, etc
+│   │   │   │   ├── logging_config.py          # Configuração de logs
+│   │   │   │   └── exceptions.py              # Exceções customizadas
+│   │   │   │
+│   │   │   ├── crud\                          # CRUD operations
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── base.py                    # CRUD base genérico
+│   │   │   │   ├── crud_protocolo.py          # 477 CRUDS
+│   │   │   │   ├── crud_tramitacao.py
+│   │   │   │   ├── crud_minuta.py
+│   │   │   │   ├── crud_assinatura.py
+│   │   │   │   ├── crud_propositura.py
+│   │   │   │   ├── crud_usuario.py
+│   │   │   │   └── ...                        # Todos os CRUDs
+│   │   │   │
+│   │   │   ├── models\                        # SQLAlchemy Models (477 tabelas!)
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── base.py                    # Base class
+│   │   │   │   ├── protocolo.py               # Tabela principal
+│   │   │   │   ├── protocolo_documento.py
+│   │   │   │   ├── protocolo_arquivo.py
+│   │   │   │   ├── protocolo_movimento.py
+│   │   │   │   ├── protocolo_tramitacao.py
+│   │   │   │   ├── documento_assinatura.py
+│   │   │   │   ├── propositura_legislativa.py
+│   │   │   │   ├── minuta_legislativa.py
+│   │   │   │   ├── usuario.py
+│   │   │   │   ├── orgao.py
+│   │   │   │   ├── assunto.py
+│   │   │   │   └── ...                        # Mais 460+ models
+│   │   │   │
+│   │   │   ├── schemas\                       # Pydantic Schemas
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── protocolo.py               # Request/Response schemas
+│   │   │   │   ├── tramitacao.py
+│   │   │   │   ├── minuta.py
+│   │   │   │   ├── assinatura.py
+│   │   │   │   ├── propositura.py
+│   │   │   │   ├── usuario.py
+│   │   │   │   ├── token.py
+│   │   │   │   └── ...                        # Schemas para todas as 477 tabelas
+│   │   │   │
+│   │   │   ├── services\                      # Business logic
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── protocolo_service.py       # Regras de negócio
+│   │   │   │   ├── tramitacao_service.py
+│   │   │   │   ├── minuta_service.py
+│   │   │   │   ├── assinatura_service.py      # ICP-Brasil
+│   │   │   │   ├── arquivo_service.py         # Upload/Download
+│   │   │   │   ├── lightrag_service.py        # RAG + LLM
+│   │   │   │   ├── relatorio_service.py       # 30+ relatórios
+│   │   │   │   ├── notificacao_service.py
+│   │   │   │   └── ...
+│   │   │   │
+│   │   │   ├── middleware\                    # Custom middlewares
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── request_id.py
+│   │   │   │   ├── timing.py
+│   │   │   │   ├── rate_limit.py
+│   │   │   │   └── audit_log.py
+│   │   │   │
+│   │   │   ├── utils\                         # Utilitários
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── date_utils.py
+│   │   │   │   ├── file_utils.py
+│   │   │   │   ├── pdf_utils.py               # iText 8
+│   │   │   │   ├── encryption.py              # Criptografia
+│   │   │   │   ├── validators.py
+│   │   │   │   └── formatters.py
+│   │   │   │
+│   │   │   └── tasks\                         # Celery tasks
+│   │   │       ├── __init__.py
+│   │   │       ├── relatorios.py
+│   │   │       ├── notificacoes.py
+│   │   │       └── migrations.py
+│   │   │
+│   │   ├── tests\                             # Testes
+│   │   │   ├── __init__.py
+│   │   │   ├── conftest.py
+│   │   │   ├── test_api\
+│   │   │   ├── test_crud\
+│   │   │   ├── test_services\
+│   │   │   └── test_utils\
+│   │   │
+│   │   ├── main.py                            # ✅ CRIADO - Aplicação principal
+│   │   ├── requirements.txt                   # Dependências Python
+│   │   ├── pyproject.toml                     # Poetry config
+│   │   ├── Dockerfile                         # Docker
+│   │   ├── .dockerignore
+│   │   ├── .env.example                       # Template de variáveis
+│   │   └── README.md
+│   │
+│   ├── 🟦 nestjs-backend\                     # Backend TypeScript + NestJS
+│   │   ├── src\
+│   │   │   ├── main.ts                        # Entry point
+│   │   │   ├── app.module.ts
+│   │   │   │
+│   │   │   ├── files\                         # Módulo de arquivos
+│   │   │   │   ├── files.module.ts
+│   │   │   │   ├── files.controller.ts
+│   │   │   │   ├── files.service.ts
+│   │   │   │   ├── dto\
+│   │   │   │   │   ├── upload-file.dto.ts
+│   │   │   │   │   └── file-metadata.dto.ts
+│   │   │   │   └── schemas\
+│   │   │   │       └── file.schema.ts         # MongoDB schema
+│   │   │   │
+│   │   │   ├── processing\                    # Processamento de PDFs
+│   │   │   │   ├── processing.module.ts
+│   │   │   │   ├── processing.service.ts
+│   │   │   │   └── processors\
+│   │   │   │       ├── pdf.processor.ts
+│   │   │   │       ├── docx.processor.ts
+│   │   │   │       └── image.processor.ts
+│   │   │   │
+│   │   │   ├── queue\                         # Bull queue
+│   │   │   │   ├── queue.module.ts
+│   │   │   │   └── processors\
+│   │   │   │       └── file-processing.processor.ts
+│   │   │   │
+│   │   │   ├── database\
+│   │   │   │   └── mongodb.provider.ts
+│   │   │   │
+│   │   │   ├── common\
+│   │   │   │   ├── filters\
+│   │   │   │   ├── guards\
+│   │   │   │   ├── interceptors\
+│   │   │   │   └── pipes\
+│   │   │   │
+│   │   │   └── config\
+│   │   │       └── configuration.ts
+│   │   │
+│   │   ├── test\
+│   │   ├── package.json
+│   │   ├── tsconfig.json
+│   │   ├── nest-cli.json
+│   │   ├── Dockerfile
+│   │   └── README.md
+│   │
+│   └── ⚛️ react-frontend\                     # Frontend React 19
+│       ├── public\
+│       │   ├── index.html
+│       │   └── assets\
+│       │
+│       ├── src\
+│       │   ├── main.tsx                       # Entry point
+│       │   ├── App.tsx
+│       │   ├── index.css
+│       │   │
+│       │   ├── assets\                        # Imagens, ícones
+│       │   │
+│       │   ├── components\                    # Componentes reutilizáveis
+│       │   │   ├── common\
+│       │   │   │   ├── Button\
+│       │   │   │   ├── Input\
+│       │   │   │   ├── Table\
+│       │   │   │   ├── Modal\
+│       │   │   │   ├── Form\
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── layout\
+│       │   │   │   ├── Header.tsx
+│       │   │   │   ├── Sidebar.tsx
+│       │   │   │   ├── Footer.tsx
+│       │   │   │   └── MainLayout.tsx
+│       │   │   │
+│       │   │   └── features\                  # Componentes específicos
+│       │   │       ├── protocolos\
+│       │   │       ├── tramitacao\
+│       │   │       ├── minutas\
+│       │   │       ├── assinaturas\
+│       │   │       └── ...
+│       │   │
+│       │   ├── pages\                         # Páginas (265 funcionalidades!)
+│       │   │   ├── Dashboard\
+│       │   │   │   └── index.tsx
+│       │   │   │
+│       │   │   ├── Protocolos\
+│       │   │   │   ├── ListaProtocolos.tsx    # Pesquisa simples/avançada
+│       │   │   │   ├── IncluirProtocolo.tsx   # 24 tipos de inclusão
+│       │   │   │   ├── DetalhesProtocolo.tsx
+│       │   │   │   ├── EditarProtocolo.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── Tramitacao\
+│       │   │   │   ├── Tramitar.tsx           # 22 páginas de tramitação
+│       │   │   │   ├── Receber.tsx
+│       │   │   │   ├── Distribuir.tsx
+│       │   │   │   ├── GuiaTramitacao.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── Minutas\
+│       │   │   │   ├── ListaMinutas.tsx       # 26 páginas de minutas
+│       │   │   │   ├── IncluirMinuta.tsx
+│       │   │   │   ├── AvaliarMinuta.tsx
+│       │   │   │   ├── TramitarMinuta.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── Assinaturas\
+│       │   │   │   ├── AssinadorDigital.tsx   # 15 páginas de assinatura
+│       │   │   │   ├── ListaAssinaturas.tsx
+│       │   │   │   ├── ValidarAssinatura.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── Expedicao\
+│       │   │   │   ├── Expedir.tsx            # 18 páginas
+│       │   │   │   ├── GuiaExpedicao.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── Relatorios\
+│       │   │   │   ├── index.tsx              # 30+ relatórios
+│       │   │   │   ├── RelatorioTramitacao.tsx
+│       │   │   │   ├── RelatorioProducao.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   ├── Pesquisa\
+│       │   │   │   ├── PesquisaSimples.tsx
+│       │   │   │   ├── PesquisaAvancada.tsx
+│       │   │   │   └── PesquisaInteligente.tsx # LightRAG
+│       │   │   │
+│       │   │   ├── Gestao\
+│       │   │   │   ├── Arquivar.tsx
+│       │   │   │   ├── Eliminar.tsx
+│       │   │   │   └── ...
+│       │   │   │
+│       │   │   └── Auth\
+│       │   │       ├── Login.tsx
+│       │   │       ├── RecuperarSenha.tsx
+│       │   │       └── AlterarSenha.tsx
+│       │   │
+│       │   ├── hooks\                         # Custom hooks
+│       │   │   ├── useProtocolo.ts
+│       │   │   ├── useTramitacao.ts
+│       │   │   ├── useMinuta.ts
+│       │   │   ├── useAuth.ts
+│       │   │   ├── useUpload.ts
+│       │   │   └── ...
+│       │   │
+│       │   ├── services\                      # API clients
+│       │   │   ├── api.ts                     # Axios config
+│       │   │   ├── protocoloService.ts
+│       │   │   ├── tramitacaoService.ts
+│       │   │   ├── minutaService.ts
+│       │   │   ├── assinaturaService.ts
+│       │   │   ├── authService.ts
+│       │   │   └── ...
+│       │   │
+│       │   ├── store\                         # Zustand store
+│       │   │   ├── index.ts
+│       │   │   ├── authStore.ts
+│       │   │   ├── protocoloStore.ts
+│       │   │   ├── tramitacaoStore.ts
+│       │   │   └── uiStore.ts
+│       │   │
+│       │   ├── types\                         # TypeScript types
+│       │   │   ├── protocolo.types.ts
+│       │   │   ├── tramitacao.types.ts
+│       │   │   ├── usuario.types.ts
+│       │   │   └── ...
+│       │   │
+│       │   ├── utils\
+│       │   │   ├── constants.ts
+│       │   │   ├── formatters.ts
+│       │   │   ├── validators.ts
+│       │   │   └── helpers.ts
+│       │   │
+│       │   └── styles\
+│       │       ├── theme.ts                   # Ant Design theme
+│       │       └── global.css
+│       │
+│       ├── package.json
+│       ├── tsconfig.json
+│       ├── vite.config.ts
+│       ├── tailwind.config.js
+│       ├── Dockerfile
+│       └── README.md
+│
+├── 🔄 migration\                              # Scripts de migração
+│   ├── sql_to_postgres\
+│   │   ├── migrate_schema.py                  # Migra schema
+│   │   ├── migrate_data.py                    # Migra dados (477 tabelas)
+│   │   ├── migrate_files.py                   # Migra arquivos
+│   │   ├── validate_migration.py              # Valida integridade
+│   │   └── rollback.py                        # Rollback
+│   │
+│   ├── legacy_connection.py                   # Conexão SQL Server
+│   ├── mapping_tables.json                    # Mapeamento de tabelas
+│   ├── migration_plan.md                      # Plano de migração
+│   └── README.md
+│
+├── 📊 data\                                   # Dados locais
+│   ├── lightrag\                              # LightRAG working dir
+│   ├── uploads\                               # Uploads temporários
+│   ├── logs\                                  # Logs da aplicação
+│   └── backups\                               # Backups
+│
+├── 📝 docs\                                   # Documentação
+│   ├── api\
+│   │   ├── openapi.json                       # OpenAPI spec
+│   │   └── postman_collection.json
+│   │
+│   ├── architecture\
+│   │   ├── system_design.md
+│   │   ├── database_schema.md
+│   │   ├── api_design.md
+│   │   └── diagrams\
+│   │
+│   ├── user_guide\
+│   │   ├── instalacao.md
+│   │   ├── configuracao.md
+│   │   ├── uso_basico.md
+│   │   └── funcionalidades.md
+│   │
+│   └── developer_guide\
+│       ├── setup_dev.md
+│       ├── contributing.md
+│       ├── code_style.md
+│       └── testing.md
+│
+├── 🔧 scripts\                                # Scripts úteis
+│   ├── setup_dev.sh                           # Setup ambiente dev
+│   ├── backup_db.sh                           # Backup banco
+│   ├── restore_db.sh                          # Restore banco
+│   ├── generate_models.py                     # Gera models das 477 tabelas
+│   ├── generate_schemas.py                    # Gera schemas Pydantic
+│   ├── generate_cruds.py                      # Gera CRUDs
+│   └── seed_database.py                       # Popula banco com dados teste
+│
+├── 🐳 docker-compose.yml                      # Orquestração completa
+├── docker-compose.dev.yml                     # Ambiente dev
+├── docker-compose.prod.yml                    # Ambiente prod
+│
+├── .env.example                               # Template variáveis de ambiente
+├── .gitignore
+├── .dockerignore
+├── Makefile                                   # Comandos úteis
+└── README.md                                  # README principal do projeto
+```
+
+---
+
+## 📊 ESTATÍSTICAS DO PROJETO
+
+### Backend FastAPI
+
+| Item | Quantidade | Status |
+|------|------------|--------|
+| Models (SQLAlchemy) | 477 | 🟡 A gerar |
+| Schemas (Pydantic) | 477 | 🟡 A gerar |
+| CRUD classes | 477 | 🟡 A gerar |
+| API Endpoints | 265+ | 🟡 A gerar |
+| Services | 50+ | 🟡 A gerar |
+| Middlewares | 5 | 🟢 Base criada |
+
+### Frontend React
+
+| Item | Quantidade | Status |
+|------|------------|--------|
+| Páginas | 265 | 🟡 A gerar |
+| Componentes | 200+ | 🟡 A gerar |
+| Hooks customizados | 50+ | 🟡 A gerar |
+| Services (API clients) | 30+ | 🟡 A gerar |
+| Types TypeScript | 477 | 🟡 A gerar |
+
+### Migração
+
+| Item | Quantidade | Status |
+|------|------------|--------|
+| Tabelas para migrar | 477 | 🟡 Planejado |
+| Registros totais | ~15,7M | 🟡 Planejado |
+| Arquivos para migrar | ~814.000 | 🟡 Planejado |
+| Tamanho total arquivos | ~715 GB | 🟡 Planejado |
+
+---
+
+## 🚀 PRÓXIMOS ARQUIVOS A SEREM GERADOS
+
+Devido ao tamanho massivo do projeto, vou gerar os arquivos em **módulos**:
+
+### Módulo 1: Core e Database ✅
+- [x] main.py
+- [x] app/core/config.py
+- [ ] app/core/database.py
+- [ ] app/core/redis.py
+- [ ] app/core/mongodb.py
+- [ ] app/core/security.py
+- [ ] app/core/logging_config.py
+
+### Módulo 2: Models Principais (Top 20 tabelas)
+- [ ] app/models/base.py
+- [ ] app/models/protocolo.py
+- [ ] app/models/protocolo_documento.py
+- [ ] app/models/protocolo_arquivo.py
+- [ ] app/models/documento_assinatura.py
+- [ ] ... (continua)
+
+### Módulo 3: Schemas Principais
+- [ ] app/schemas/protocolo.py
+- [ ] app/schemas/tramitacao.py
+- [ ] app/schemas/minuta.py
+- [ ] ... (continua)
+
+### Módulo 4: CRUDs e Services
+- [ ] app/crud/crud_protocolo.py
+- [ ] app/services/protocolo_service.py
+- [ ] ... (continua)
+
+### Módulo 5: API Endpoints
+- [ ] app/api/v1/endpoints/protocolos.py
+- [ ] app/api/v1/endpoints/tramitacao.py
+- [ ] ... (continua)
+
+---
+
+## 💡 ESTRATÉGIA DE GERAÇÃO
+
+Para gerenciar as **477 tabelas** de forma eficiente, vou usar:
+
+1. **Generator scripts** - Scripts Python que geram código automaticamente
+2. **Templates** - Templates Jinja2 para models, schemas, CRUDs
+3. **Metadados** - Extrair metadados do SQL Server e gerar código
+4. **Priorização** - Começar pelas 20 tabelas mais importantes
+5. **Modularização** - Agrupar tabelas relacionadas
+
+---
+
+## 🎯 ORDEM DE DESENVOLVIMENTO RECOMENDADA
+
+### Fase 1: Foundation (1-2 dias)
+1. Core (config, database, security) ✅ Iniciado
+2. Authentication & Authorization
+3. Base CRUD & Models
+4. API structure
+
+### Fase 2: Principais Módulos (1-2 semanas)
+1. **Protocolos** (tabela principal)
+2. **Tramitação** (fluxo crítico)
+3. **Documentos/Arquivos**
+4. **Assinaturas Digitais**
+5. **Minutas**
+
+### Fase 3: Módulos Secundários (2-3 semanas)
+1. Proposituras Legislativas
+2. Relatórios
+3. Pesquisa (LightRAG)
+4. Gestão Documental
+5. Comunicação
+
+### Fase 4: Frontend (2-3 semanas)
+1. Layout e componentes base
+2. Dashboard
+3. Páginas principais
+4. Integração com APIs
+
+### Fase 5: Migração (1-2 semanas)
+1. Scripts de migração
+2. Validação de dados
+3. Migração de arquivos
+4. Testes de integridade
+
+### Fase 6: Deploy (1 semana)
+1. CI/CD
+2. Monitoramento
+3. Documentação final
+4. Treinamento
+
+**TEMPO TOTAL ESTIMADO:** 2-3 meses
+
+---
+
+## 📝 NOTAS IMPORTANTES
+
+### Decisões Arquiteturais
+
+1. **PostgreSQL vs SQL Server**
+   - Migração completa para PostgreSQL
+   - SQL Server mantido apenas como fonte de migração
+
+2. **MongoDB para Arquivos**
+   - GridFS para arquivos grandes
+   - Metadados em PostgreSQL
+   - Referências entre bancos
+
+3. **Redis para Cache**
+   - Cache de sessões
+   - Cache de consultas frequentes
+   - Rate limiting
+
+4. **LightRAG para Pesquisa**
+   - Pesquisa semântica
+   - RAG com LLMs
+   - Embeddings de documentos
+
+5. **Modularização**
+   - Microserviços quando necessário
+   - Monolito modular por padrão
+   - APIs REST + GraphQL (futuro)
+
+### Segurança
+
+- ✅ JWT para autenticação
+- ✅ HTTPS obrigatório em produção
+- ✅ Rate limiting
+- ✅ CORS configurado
+- ✅ Validação de inputs
+- ✅ SQL injection protection (ORM)
+- ✅ Logs de auditoria
+
+---
+
+**Próximo passo:** Continuar gerando os arquivos core do backend!

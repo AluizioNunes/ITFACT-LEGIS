@@ -1,0 +1,1080 @@
+# Análise Completa da Aplicação IIS - Sistema CMM (Câmara Municipal de Manaus)
+## Sistema de Gestão Eletrônica de Documentos Legislativo
+
+**Data da Análise:** 04 de fevereiro de 2026  
+**Servidor IIS:** Windows Server  
+**Localização:** D:\inetpub\wwwroot\cmm  
+**Ambiente:** Teste
+
+---
+
+## 1. ESTRUTURA GERAL DA APLICAÇÃO
+
+### 1.1 Diretórios Principais
+
+```
+D:\inetpub\wwwroot\cmm\
+├── api/                    # Web API REST (ASP.NET MVC 5)
+├── App_Data/              # Dados da aplicação
+├── aspnet_client/         # Recursos client-side ASP.NET
+├── integrador/            # Web Service de integração (ASMX)
+├── mobile/                # Aplicação mobile (ASP.NET MVC)
+├── proton/                # Aplicação principal (WebForms)
+├── servico/               # Web Service principal (ASMX)
+├── verificador/           # Sistema de verificação de documentos
+├── default.htm            # Página inicial
+└── web.config             # Configuração raiz
+```
+
+### 1.2 Características Gerais
+
+- **Plataforma:** ASP.NET Framework 4.0 / 4.5
+- **Linguagem Principal:** Visual Basic .NET (VB.NET) e C#
+- **Arquitetura:** WebForms + MVC + Web Services (ASMX)
+- **Padrão:** Multi-camadas (Apresentação, Fachada, Regra, Repositório)
+- **ORM:** Entity Framework 6.1.3
+- **Frontend:** Angular 1.6.4, jQuery, Bootstrap
+
+---
+
+## 2. CONNECTION STRINGS E BANCO DE DADOS
+
+### 2.1 Strings de Conexão Identificadas
+
+**Todas as aplicações utilizam as mesmas credenciais:**
+
+```xml
+<connectionStrings>
+  <!-- SQL Server ADO.NET -->
+  <add name="ProtonConnectionString" 
+       providerName="System.Data.SqlClient" 
+       connectionString="Data Source=(local);
+                        Initial Catalog=bd_cmm;
+                        Persist Security Info=True;
+                        User ID=iusr_cmm;
+                        Password=ProtonCmm4321;
+                        Connection Timeout=30;
+                        MultipleActiveResultSets=True" />
+  
+  <!-- OLE DB -->
+  <add name="ProtonOleDB" 
+       providerName="System.Data.OleDb" 
+       connectionString="Provider=SQLOLEDB.1;
+                        Data Source=(local);
+                        Initial Catalog=bd_cmm;
+                        Persist Security Info=True;
+                        User ID=iusr_cmm;
+                        Password=ProtonCmm4321;
+                        Connection Timeout=30" />
+</connectionStrings>
+```
+
+### 2.2 Configuração do Banco
+
+- **SGBD:** Microsoft SQL Server
+- **Instância:** (local) - Instância padrão local
+- **Database:** bd_cmm
+- **Usuário:** iusr_cmm
+- **Senha:** ProtonCmm4321 ⚠️ **CREDENCIAL EXPOSTA**
+- **Timeout:** 30 segundos
+- **MARS:** Habilitado (Multiple Active Result Sets)
+
+### 2.3 ⚠️ ALERTA DE SEGURANÇA
+
+**CRÍTICO:** Credenciais do banco de dados estão expostas em texto claro em múltiplos arquivos web.config. Recomendações:
+
+1. Implementar criptografia de connection strings
+2. Usar autenticação integrada do Windows
+3. Implementar gerenciamento de segredos (Azure Key Vault, HashiCorp Vault)
+4. Alterar senha imediatamente se ambiente for produção
+
+---
+
+## 3. APLICAÇÃO PRINCIPAL: PROTON
+
+### 3.1 Tecnologias e Frameworks
+
+**Backend:**
+- ASP.NET WebForms 4.0
+- Visual Basic .NET
+- Entity Framework 6.1.3
+- Dapper (micro-ORM adicional)
+
+**Frontend:**
+- Angular 1.6.4
+- jQuery 3.2.1
+- Bootstrap 3/4
+- Toastr (notificações)
+- Bootstrap DatePicker 1.6.4
+- Angucomplete-alt 3.0.0
+
+**Bibliotecas de Terceiros:**
+- **iText7 7.1.16** - Geração/manipulação PDF
+- **DocumentFormat.OpenXml** - Manipulação Office (Word, Excel)
+- **EPPlus** - Geração Excel
+- **Spire.Doc/Pdf** - Conversão de documentos
+- **ITHit.WebDAV.Server** - Protocolo WebDAV para edição online
+- **Lacuna PKI 2.4.0** - Assinatura digital (ICP-Brasil)
+- **BouncyCastle 1.8.1** - Criptografia
+- **BarcodeLib** - Geração de códigos de barras
+- **Common.Logging 3.4.1** - Sistema de logs
+- **Log4net** - Framework de logging
+
+### 3.2 Configurações Importantes (web.config)
+
+#### Autenticação e Membership
+
+```xml
+<membership defaultProvider="CSLIB_MembershipProvider" 
+            userIsOnlineTimeWindow="15">
+  <providers>
+    <add name="CSLIB_MembershipProvider" 
+         type="CSLIB.UserManager.CSLIB_MembershipProvider, CSLIB.UserManager"
+         applicationName="Eproton"
+         enablePasswordRetrieval="false"
+         enablePasswordReset="false"
+         requiresQuestionAndAnswer="false"
+         requiresUniqueEmail="false"
+         passwordFormat="Hashed"
+         applicationid="20" />
+  </providers>
+</membership>
+```
+
+**Características:**
+- Provider customizado: CSLIB_MembershipProvider
+- Senhas armazenadas com hash
+- Não permite recuperação de senha (reset apenas)
+- Não requer email único
+- Timeout de sessão online: 15 minutos
+- Application ID: 20
+
+#### Segurança e Criptografia
+
+```xml
+<machineKey 
+  validationKey="938D5CD846EE2473F74142CE75D1841A95440A6B702B7F55E2FF4440CB701A1B1B0BFA82E8279CC5703CCFCB614F30EFBB4278773EA35F15D97D33E7C4FAB300"
+  decryptionKey="ABBC21530988F61CC3A7A5EFC2FBCABD269718FA5CA7354D8C532EDAD8818A26"
+  validation="SHA1"
+  decryption="AES" />
+```
+
+**Parâmetros de Criptografia (AppSettings):**
+```xml
+<add key="txt_criptogafia_chave" value="Gr4_41rp0rT" />
+<add key="txt_criptogafia_salt" value="pr8t8n1kh8n" />
+```
+
+#### Configurações de Sessão e Execução
+
+```xml
+<httpRuntime 
+  maxRequestLength="2097151"        <!-- ~2GB -->
+  executionTimeout="2400"            <!-- 40 minutos -->
+  requestPathInvalidCharacters=""    <!-- Permite caracteres especiais -->
+  relaxedUrlToFileSystemMapping="true"
+  requestValidationMode="2.0" />
+
+<sessionState timeout="120" />       <!-- 2 horas -->
+```
+
+#### URLs e Endpoints
+
+```xml
+<add key="ambiente" value="teste" />
+<add key="url" value="http://cd02.cmm.am.gov.br/proton/proton/" />
+<add key="txt_url_verificacao_documento" 
+     value="https://cd02.cmm.am.gov.br/verificador" />
+<add key="txt_url_verificacao_usuario_externo" 
+     value="https://cd02.cmm.am.gov.br/proton/proton/UsuarioExterno" />
+```
+
+#### Integração com Sessão Plenária
+
+```xml
+<add key="sessaoPlenariaApiUrl" 
+     value="https://expedienteh.cmm.am.gov.br/api/ikon-services"/>
+<add key="sessaoPlenariaApiToken" 
+     value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOjEsImlhdCI6MTcyMjg3ODQyOCwiZXhwIjoxNzIyOTY0ODI4fQ.0U_91OAeG5Qq05OFL0GStqL699R03rNk5E8mF-XTSPE"/>
+```
+
+### 3.3 Arquitetura de Camadas
+
+Baseado nas DLLs identificadas em `/bin`:
+
+```
+┌─────────────────────────────────────┐
+│   Ikhon.ePROTON.Intranet.dll       │ ← Camada de Apresentação (UI)
+│   Ikhon.ePROTON.Apresentacao.dll   │
+└─────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────┐
+│   Ikhon.ePROTON.Fachada.dll        │ ← Camada de Fachada (API)
+└─────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────┐
+│   Ikhon.ePROTON.Regra.dll          │ ← Camada de Regras de Negócio
+└─────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────┐
+│   Ikhon.ePROTON.Repositorio.dll    │ ← Camada de Acesso a Dados
+│   Ikhon.ePROTON.Data.dll           │
+│   Ikhon.ePROTON.ContextoDB.dll     │
+└─────────────────────────────────────┘
+              ↓
+┌─────────────────────────────────────┐
+│   Ikhon.ePROTON.Modelo.dll         │ ← Camada de Modelo (Entidades)
+└─────────────────────────────────────┘
+
+Componentes Auxiliares:
+├── Ikhon.ePROTON.Seguranca.dll      # Autenticação/Autorização
+├── Ikhon.ePROTON.Utils.dll          # Utilitários
+├── Ikhon.ePROTON.WebDav.dll         # Protocolo WebDAV
+└── Ikhon.ePROTON.Infra.Core.dll     # Infraestrutura
+```
+
+### 3.4 Módulos Funcionais (Estrutura de Pastas)
+
+```
+proton/proton/
+├── acervo/                   # Gestão de acervo documental
+├── arquivo/                  # Gestão de arquivo físico/digital
+├── dossie/                   # Dossiês de processos
+├── legislativo/              # Módulos legislativos
+│   ├── ata_sessao_plenario/
+│   ├── comissao/
+│   ├── filiacaopartidaria/
+│   ├── mandato/
+│   ├── mesa_diretora/
+│   ├── minuta/
+│   ├── parlamentar/
+│   ├── pauta_legislativa_comissao/
+│   ├── pauta_legislativa_plenario/
+│   ├── propositura/
+│   └── sessoes_plenarias/
+├── protocolo/                # Gestão de protocolos (MAIOR MÓDULO)
+│   ├── Mais de 260 páginas .aspx
+│   ├── incluir_externo/
+│   ├── propositura/
+│   ├── relatorio_excel/
+│   └── relatorio_pdf/
+├── gerencia/                 # Administração do sistema
+├── fluxo_trabalho/          # Workflow
+├── digitalizacao/           # Digitalização de documentos
+├── imagemprocesso/          # Armazenamento de imagens
+├── notificacao/             # Sistema de notificações
+├── pauta/                   # Pautas
+├── solicitacao/             # Solicitações
+├── visualizador/            # Visualizador de documentos
+└── UsuarioExterno/          # Portal para usuários externos
+```
+
+### 3.5 Funcionalidades de Protocolo Identificadas
+
+Baseado nos 260+ arquivos .aspx em `/protocolo`:
+
+**Ciclo de Vida do Protocolo:**
+- Inclusão (incluir_protocolo.aspx, incluir_processo.aspx)
+- Tramitação (movimentar.aspx, tramitar.aspx)
+- Distribuição (distribuicao.aspx, distribuicao_receber.aspx)
+- Recebimento (receber.aspx, recebimento.aspx)
+- Assinatura (assinador.aspx, assinatura_pessoal.aspx)
+- Despachos (ficha_despacho.aspx, incluir_pre_despacho.aspx)
+- Anexação (anexar.aspx, anexar_doc.aspx)
+- Apensamento (apensar.aspx)
+- Juntada (vinculacao.aspx)
+
+**Gestão de Documentos:**
+- Incluir arquivos (incluir_arquivo.aspx, incluir_arquivo_multiplo.aspx)
+- Minutas (minuta.aspx, minuta_incluir.aspx, minuta_versao.aspx)
+- Assinatura digital (assinador_login.aspx, doc_assinatura_pessoal.aspx)
+- Consolidação PDF (pdf_consolidar.aspx)
+- Impressão (impressao.aspx, impressao_processo.aspx)
+- Capa (capa.aspx, capa_processo.aspx)
+
+**Controles e Prazos:**
+- Prazos (prazo_resposta.aspx, controle_prazo.aspx)
+- Sobrestamento (sobrestar.aspx)
+- Diligências (diligencia.aspx)
+- Providências (providenciar.aspx)
+- Cancelamentos (cancelar.aspx, movimentar_cancelar.aspx)
+
+**Arquivo e Eliminação:**
+- Arquivamento (arquivar.aspx)
+- Empréstimo (emprestar.aspx, emprestimo_receber.aspx)
+- Eliminação (eliminar.aspx, eliminar_incluir.aspx)
+- Caixas (incluir_caixa.aspx)
+- Etiquetas (etiqueta.aspx, gerar_etiqueta.aspx)
+
+**Expedição:**
+- Expedição (expedicao.aspx, expedicao_digital.aspx)
+- Guias (expedicao_guia.aspx, guia_tramitacao.aspx)
+- Integração (expedicao_integracao.aspx)
+- Recebimento (expedicao_receber.aspx)
+
+**Pesquisa e Relatórios:**
+- Pesquisa simples (pesquisa_simples.aspx)
+- Pesquisa avançada (pesquisa_avancada.aspx)
+- 30+ relatórios diferentes (relatorio_*.aspx)
+
+**Comunicação:**
+- Comunicação eletrônica (comunicacao_electronica.aspx)
+- Consulta pública (consulta_publica.aspx)
+- Publicação (publicacao.aspx)
+- Comentários (comentario.aspx)
+
+**Segurança e Acesso:**
+- Concessões (concessao_consultar.aspx, incluir_concessao_consulta.aspx)
+- Permissões especiais
+- Usuários responsáveis (responsavel.aspx, incluir_usuario.aspx)
+
+### 3.6 WebDAV - Edição Online de Documentos
+
+```xml
+<httpHandlers>
+  <add path="*" verb="OPTIONS,PROPFIND" 
+       type="proton.WebDAVServerImpl.DavHandler" />
+</httpHandlers>
+
+<httpModules>
+  <add name="ITHitPutUploadProgressAndResumeModule" 
+       type="ITHit.WebDAV.Server.ResumableUpload.PutUploadProgressAndResumeModule, ITHit.WebDAV.Server" />
+  <add name="ITHitPostUploadProgressModule" 
+       type="ITHit.WebDAV.Server.PostUploadProgressModule, ITHit.WebDAV.Server" />
+</httpModules>
+```
+
+**Funcionalidade:** Permite edição de documentos diretamente no navegador através do protocolo WebDAV, especialmente configurado para o diretório `/proton/imagemprocesso/minuta`.
+
+---
+
+## 4. API REST (ASP.NET MVC)
+
+### 4.1 Localização e Estrutura
+
+**Diretório:** `D:\inetpub\wwwroot\cmm\api`  
+**Tecnologia:** ASP.NET MVC 5 + Web API  
+**Linguagem:** C#
+
+### 4.2 Controllers Identificados
+
+```
+api/Controllers/
+├── HomeController.cs        # Controller padrão
+├── LoginController.cs       # Autenticação
+└── ValuesController.cs      # Controller de exemplo
+```
+
+### 4.3 Endpoint de Login
+
+```csharp
+// POST: api/Login
+public Boolean Post(User user)
+{
+    var _segUsuarioFaixada = new UsuarioFachada();
+    var _result = _segUsuarioFaixada.ChecarLoginSenha(
+        user.txt_login, 
+        user.txt_senha
+    );
+    return _result;
+}
+
+public class User
+{
+    public string txt_login { get; set; }
+    public string txt_senha { get; set; }
+}
+```
+
+**Endpoint:** `POST /api/Login`  
+**Payload:**
+```json
+{
+  "txt_login": "usuario",
+  "txt_senha": "senha"
+}
+```
+**Resposta:** Boolean (true/false)
+
+### 4.4 Configurações da API
+
+```xml
+<system.webServer>
+  <handlers>
+    <remove name="WebDAV" />
+    <add name="ExtensionlessUrlHandler-Integrated-4.0" 
+         path="*." verb="*" 
+         type="System.Web.Handlers.TransferRequestHandler" />
+  </handlers>
+  <modules>
+    <remove name="WebDAVModule" />
+    <add name="ApplicationInsightsWebTracking" />
+  </modules>
+</system.webServer>
+```
+
+### 4.5 Estrutura de Pastas API
+
+```
+api/
+├── Areas/              # Áreas MVC
+├── App_Start/          # Configuração inicial
+├── Controllers/        # Controllers da API
+├── Content/            # CSS e recursos
+├── Scripts/            # JavaScript
+├── Views/              # Views MVC
+├── Proton/             # Recursos específicos Proton
+├── Filter/             # Filtros HTTP
+└── fonts/              # Fontes
+```
+
+---
+
+## 5. WEB SERVICES (ASMX)
+
+### 5.1 Serviço Principal: CMM
+
+**Localização:** `D:\inetpub\wwwroot\cmm\servico`  
+**Arquivo:** `cmm.asmx`  
+**Linguagem:** Visual Basic .NET  
+**CodeBehind:** `~/App_Code/Proton.vb`
+
+#### Configuração de Armazenamento
+
+```xml
+<appSettings>
+  <add key="txt_armazenamento_fisico" 
+       value="F:\ArquivosDigitais\proton\imagemprocesso" />
+  <add key="txt_armazenamento_fisico_curto" 
+       value="F:\ArquivosDigitais\proton" />
+  <add key="txt_armazenamento_logico" 
+       value="/proton/imagemprocesso/2011/" />
+  <add key="txt_armazenamento_fisico_modelo" 
+       value="F:\ArquivosDigitais\proton\imagemprocesso\modelo\" />
+</appSettings>
+```
+
+**Observação:** Arquivos digitais são armazenados em `F:\ArquivosDigitais\proton\`
+
+#### Configurações de Upload
+
+```xml
+<httpRuntime 
+  executionTimeout="3600"     <!-- 1 hora -->
+  maxRequestLength="62914560" <!-- ~60MB -->
+  maxUrlLength="2048" />
+```
+
+### 5.2 Serviço Integrador
+
+**Localização:** `D:\inetpub\wwwroot\cmm\integrador`  
+**Arquivo:** `integrador.asmx`  
+**Propósito:** Integração com sistemas externos
+
+#### Configuração WCF
+
+```xml
+<system.serviceModel>
+  <bindings>
+    <basicHttpBinding>
+      <binding name="integradorSoap" 
+               maxReceivedMessageSize="20000000"
+               maxBufferSize="20000000"
+               maxBufferPoolSize="20000000">
+        <security mode="Transport">
+          <transport clientCredentialType="None" />
+        </security>
+      </binding>
+    </basicHttpBinding>
+  </bindings>
+  <client>
+    <endpoint 
+      address="https://proton-hml.manaus.am.gov.br/integrador/integrador.asmx"
+      binding="basicHttpBinding"
+      bindingConfiguration="integradorSoap"
+      contract="integrador.integradorSoap"
+      name="integradorSoap" />
+  </client>
+</system.serviceModel>
+```
+
+**Endpoint Externo:** `https://proton-hml.manaus.am.gov.br/integrador/integrador.asmx`
+
+---
+
+## 6. APLICAÇÃO MOBILE
+
+**Localização:** `D:\inetpub\wwwroot\cmm\mobile`  
+**Tecnologia:** ASP.NET MVC 5  
+**Target Framework:** .NET 4.5
+
+### Configurações
+
+```xml
+<authentication mode="None" />
+<compilation targetFramework="4.5" />
+```
+
+**Características:**
+- Autenticação OAuth (Microsoft.Owin.Security.OAuth)
+- Entity Framework 6
+- Sem autenticação Forms (mode="None")
+- Application Insights habilitado
+
+---
+
+## 7. VERIFICADOR DE DOCUMENTOS
+
+**Localização:** `D:\inetpub\wwwroot\cmm\verificador`  
+**Propósito:** Portal público para verificação de autenticidade de documentos
+
+### Funcionalidades
+
+- Verificação por código (default.aspx)
+- Validação de assinaturas digitais
+- Download de documentos originais assinados
+- Master page customizado (verificador.Master)
+- Captcha (MSCaptcha)
+
+### Interface
+
+```vb
+' Campos principais
+editCodigoVerificacao    ' TextBox para código (16 caracteres)
+btnSubmit                ' Botão pesquisar
+btnDownload              ' Botão download documento
+lblResultado             ' Label resultado
+```
+
+---
+
+## 8. DEPENDÊNCIAS E BIBLIOTECAS
+
+### 8.1 NuGet Packages (packages.config)
+
+```xml
+<packages>
+  <package id="BouncyCastle" version="1.8.1" />
+  <package id="Common.Logging" version="3.4.1" />
+  <package id="Common.Logging.Core" version="3.4.1" />
+  <package id="EntityFramework" version="6.1.3" />
+  <package id="itext7" version="7.1.16" />
+  <package id="Lacuna.Pki" version="2.4.0" />
+  <package id="Microsoft.CSharp" version="4.0.1" />
+  <package id="Newtonsoft.Json" version="10.0.2" />
+  <package id="Portable.BouncyCastle" version="1.8.9" />
+</packages>
+```
+
+### 8.2 DLLs Principais (bin/)
+
+**Framework e Core:**
+- EntityFramework.dll (6.0)
+- EntityFramework.SqlServer.dll
+- Newtonsoft.Json.dll (10.0)
+- Dapper.dll
+
+**Documentos e PDF:**
+- itext.kernel.dll, itext.layout.dll, itext.forms.dll (iText 7)
+- itextsharp.dll (iText Sharp - versão anterior)
+- Spire.Doc.dll, Spire.Pdf.dll
+- DocumentFormat.OpenXml.dll
+- EPPlus.dll
+
+**Assinatura Digital:**
+- Lacuna.Pki.dll (2.4.0)
+- Lacuna.T8.dll
+- ikcAssinatura.dll
+- BouncyCastle.Crypto.dll
+
+**WebDAV:**
+- ITHit.WebDAV.Server.dll
+
+**Utilitários:**
+- BarcodeLib.dll
+- log4net.dll
+- LinqKit.dll
+- Microsoft.mshtml.dll
+
+**Camadas da Aplicação:**
+- CSLIB.dll, CSLIB.UserManager.dll, CSLIB_URLoginControl.dll
+- Ikhon.ePROTON.*.dll (10+ DLLs das camadas)
+
+### 8.3 Frontend (package.json)
+
+```json
+{
+  "dependencies": {
+    "angucomplete-alt": "^3.0.0",
+    "angular": "^1.6.4",
+    "angular-cookies": "^1.6.5",
+    "bootstrap-datepicker": "^1.6.4",
+    "jquery": "^3.2.1",
+    "toastr": "^2.1.2"
+  }
+}
+```
+
+---
+
+## 9. LICENCIAMENTO
+
+### 9.1 Lacuna PKI (Assinatura Digital)
+
+```xml
+<LacunaPkiLicense>
+  <Version>3</Version>
+  <Id>5ce8de5c-dfe7-4469-be53-d3db096bae7e</Id>
+  <Licensee>Ikhon Tecnologia</Licensee>
+  <IssueDate>2018-07-10 14:29:58Z</IssueDate>
+  <Features>127</Features>
+</LacunaPkiLicense>
+```
+
+**Licenciado para:** Ikhon Tecnologia  
+**Data de Emissão:** 10/07/2018  
+**Features:** 127 (todas habilitadas)
+
+### 9.2 Spire (Conversão de Documentos)
+
+- Spire.License.dll (biblioteca de licenciamento)
+- license.elic.xml (arquivo de licença)
+
+---
+
+## 10. CONFIGURAÇÕES DE SEGURANÇA E AUTENTICAÇÃO
+
+### 10.1 Autorização
+
+```xml
+<authorization>
+  <allow users="*" />  <!-- Permite acesso anônimo -->
+</authorization>
+```
+
+**Observação:** Controle de acesso granular implementado via Membership Provider customizado.
+
+### 10.2 Custom Errors
+
+```xml
+<customErrors mode="Off" />
+```
+
+**⚠️ CRÍTICO:** Erros detalhados expostos ao cliente. Em produção deveria ser `mode="RemoteOnly"` ou `mode="On"`.
+
+### 10.3 CORS
+
+```xml
+<httpProtocol>
+  <customHeaders>
+    <add name="Access-Control-Allow-Origin" value="*" />
+  </customHeaders>
+</httpProtocol>
+```
+
+**⚠️ ALERTA:** CORS totalmente aberto (`*`). Permite requisições de qualquer origem.
+
+### 10.4 Request Filtering
+
+```xml
+<security>
+  <requestFiltering allowDoubleEscaping="true">
+    <requestLimits maxAllowedContentLength="2147483648" /> <!-- 2GB -->
+    <fileExtensions>
+      <clear />  <!-- Remove restrições de extensão -->
+    </fileExtensions>
+    <hiddenSegments>
+      <clear />  <!-- Remove segmentos ocultos -->
+    </hiddenSegments>
+  </requestFiltering>
+</security>
+```
+
+---
+
+## 11. ROTAS E ENDPOINTS PRINCIPAIS
+
+### 11.1 Aplicação Principal (Proton)
+
+**Base URL:** `http://cd02.cmm.am.gov.br/proton/proton/`
+
+**Principais Endpoints:**
+
+```
+/ ou /default.aspx                    # Dashboard principal
+/protocolo/incluir_protocolo.aspx     # Inclusão de protocolo
+/protocolo/listagem.aspx              # Listagem de protocolos
+/protocolo/impressao_processo.aspx    # Impressão
+/protocolo/assinador.aspx             # Assinador digital
+/legislativo/propositura/             # Proposições legislativas
+/legislativo/comissao/                # Comissões
+/legislativo/sessoes_plenarias/       # Sessões plenárias
+/UsuarioExterno/                      # Portal externo
+```
+
+### 11.2 API REST
+
+**Base URL:** `http://cd02.cmm.am.gov.br/api/`
+
+```
+POST /api/Login                       # Autenticação
+```
+
+### 11.3 Web Services
+
+```
+/servico/cmm.asmx                     # Serviço principal
+/integrador/integrador.asmx           # Serviço de integração
+```
+
+### 11.4 Verificador
+
+```
+https://cd02.cmm.am.gov.br/verificador/default.aspx
+```
+
+### 11.5 Handlers (.ashx)
+
+```
+/proton/proton/contadores.ashx
+/proton/proton/contadores_acompanhamentos.ashx
+/proton/proton/contadores_inicial.ashx
+/proton/proton/contadores_legislativo.ashx
+/proton/proton/default.ashx
+/proton/proton/ping.ashx
+```
+
+---
+
+## 12. DIRETÓRIOS DE ARMAZENAMENTO
+
+### 12.1 Arquivos Digitais
+
+**Principal:** `F:\ArquivosDigitais\proton\imagemprocesso\`
+
+**Estrutura:**
+```
+F:\ArquivosDigitais\proton\
+├── imagemprocesso/
+│   ├── 2011/               # Arquivos por ano
+│   ├── minuta/             # Minutas (WebDAV)
+│   ├── modelo/             # Modelos de documento
+│   └── Logs/               # Logs da aplicação
+```
+
+### 12.2 Documentos Adicionais
+
+**Diretório Secundário:** `D:\DocumentosGED\`
+
+---
+
+## 13. OBSERVAÇÕES TÉCNICAS
+
+### 13.1 Pontos Fortes
+
+✅ **Arquitetura bem estruturada** com separação de camadas  
+✅ **Assinatura digital ICP-Brasil** via Lacuna PKI  
+✅ **WebDAV** para edição online de documentos  
+✅ **Auditoria completa** integrada ao banco  
+✅ **Múltiplos formatos** de documentos suportados (PDF, Word, Excel)  
+✅ **ORM moderno** (Entity Framework 6)  
+✅ **Relatórios extensivos** em múltiplos formatos  
+✅ **API REST** para integrações  
+
+### 13.2 Pontos de Atenção
+
+⚠️ **Segurança:**
+- Credenciais em texto claro
+- Custom errors desabilitado
+- CORS totalmente aberto
+- Falta de HTTPS enforcement
+
+⚠️ **Performance:**
+- Timeout de sessão muito alto (2 horas)
+- Timeout de execução alto (40 minutos)
+- Uploads de até 2GB
+
+⚠️ **Manutenção:**
+- Framework antigo (.NET 4.0/4.5)
+- Angular 1.x (descontinuado)
+- Múltiplas bibliotecas de PDF (iText 5, iText 7, Spire)
+- VB.NET + C# misturados
+
+⚠️ **Deployment:**
+- Arquivos digitais em drive separado (F:)
+- Dependência de componentes COM/ActiveX
+
+### 13.3 Versões de Framework
+
+- **.NET Framework:** 4.0 e 4.5 (misturado)
+- **ASP.NET MVC:** 5.2.3
+- **Entity Framework:** 6.1.3
+- **Web API:** 5.2.3
+- **Newtonsoft.Json:** 10.0.2
+- **jQuery:** 3.2.1
+- **Angular:** 1.6.4
+- **Bootstrap:** 3.x
+
+---
+
+## 14. INTEGRAÇÕES EXTERNAS
+
+### 14.1 Sessão Plenária
+
+**API URL:** `https://expedienteh.cmm.am.gov.br/api/ikon-services`  
+**Autenticação:** JWT Bearer Token  
+**Token:** `eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...`
+
+**⚠️ ALERTA:** Token JWT exposto no web.config
+
+### 14.2 Integrador Homologação
+
+**Endpoint:** `https://proton-hml.manaus.am.gov.br/integrador/integrador.asmx`  
+**Protocolo:** SOAP/HTTP  
+**Binding:** BasicHttpBinding com Transport Security
+
+---
+
+## 15. MAPEAMENTO DE FUNCIONALIDADES
+
+### 15.1 Módulo de Protocolo
+
+**Principais Operações:**
+1. **Inclusão:** Protocolar documentos, processos, proposituras
+2. **Tramitação:** Movimentar entre unidades organizacionais
+3. **Distribuição:** Distribuir para análise/parecer
+4. **Assinatura:** Assinar digitalmente via ICP-Brasil
+5. **Despachos:** Incluir despachos e pareceres
+6. **Anexação:** Anexar documentos ao processo
+7. **Juntada:** Juntar processos relacionados
+8. **Arquivo:** Arquivar temporário/definitivo
+9. **Empréstimo:** Emprestar processos físicos
+10. **Expedição:** Enviar documentos externos
+
+### 15.2 Módulo Legislativo
+
+**Componentes:**
+1. **Proposituras:** Projetos de lei, requerimentos, indicações
+2. **Comissões:** Comissões permanentes e temporárias
+3. **Sessões Plenárias:** Atas, pautas, votações
+4. **Parlamentares:** Cadastro, mandatos, filiações
+5. **Mesa Diretora:** Composição e atribuições
+6. **Minutas:** Elaboração de textos legislativos
+7. **Pauta Comissão:** Reuniões de comissões
+8. **Pauta Plenário:** Ordem do dia
+
+### 15.3 Módulo de Arquivo
+
+**Funcionalidades:**
+1. Inventário de documentos
+2. Classificação temporalidade
+3. Controle de caixas
+4. Empréstimos
+5. Eliminação controlada
+6. Arquivo corrente/intermediário/permanente
+
+### 15.4 Módulo de Gerência
+
+**Administração:**
+1. Usuários e perfis
+2. Unidades organizacionais
+3. Tipos de documento
+4. Assuntos e classificação
+5. Configurações do sistema
+6. Logs e auditoria
+7. Favoritos/atalhos
+8. Relatórios gerenciais
+
+---
+
+## 16. RECOMENDAÇÕES
+
+### 16.1 Segurança (CRÍTICO)
+
+🔴 **Imediato:**
+1. Alterar senha do banco de dados
+2. Criptografar connection strings
+3. Habilitar custom errors (`mode="RemoteOnly"`)
+4. Restringir CORS a origens específicas
+5. Rotacionar token JWT da API externa
+6. Implementar HTTPS obrigatório
+
+🟡 **Curto Prazo:**
+1. Implementar autenticação Windows integrada
+2. Adicionar rate limiting na API
+3. Implementar logs de segurança
+4. Adicionar headers de segurança (HSTS, X-Frame-Options, CSP)
+5. Revisar machineKey
+
+### 16.2 Performance
+
+1. Reduzir timeout de sessão (2h → 30min)
+2. Implementar cache distribuído
+3. Otimizar queries Entity Framework
+4. Implementar paginação em listagens
+5. Comprimir responses (gzip/deflate)
+6. Implementar CDN para recursos estáticos
+
+### 16.3 Modernização
+
+**Fase 1 - Backend:**
+1. Migrar para .NET 6/8
+2. Converter WebForms para MVC/Razor Pages
+3. Padronizar em C# (remover VB.NET)
+4. Atualizar Entity Framework para EF Core
+5. Modernizar autenticação (ASP.NET Identity)
+
+**Fase 2 - Frontend:**
+1. Migrar Angular 1.x → Angular 17+
+2. Implementar SPA moderna
+3. Adotar design system (Material/Bootstrap 5)
+4. Implementar PWA
+
+**Fase 3 - Infraestrutura:**
+1. Containerização (Docker)
+2. Orquestração (Kubernetes)
+3. CI/CD pipeline
+4. Monitoramento (Application Insights)
+5. Backup automatizado
+
+### 16.4 Arquitetura
+
+1. Implementar CQRS para operações complexas
+2. Adicionar camada de API Gateway
+3. Separar microserviços (Protocolo, Legislativo, Arquivo)
+4. Implementar message queue (RabbitMQ/Azure Service Bus)
+5. Adicionar cache distribuído (Redis)
+
+---
+
+## 17. DIAGRAMA DE ARQUITETURA ATUAL
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                         INTERNET                             │
+└──────────────────────┬──────────────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────────────┐
+│                    IIS Web Server                            │
+│  ┌────────────┬────────────┬─────────────┬─────────────┐   │
+│  │   Proton   │    API     │   Mobile    │ Verificador │   │
+│  │  WebForms  │  REST/MVC  │     MVC     │  WebForms   │   │
+│  └─────┬──────┴──────┬─────┴──────┬──────┴──────┬──────┘   │
+└────────┼─────────────┼────────────┼─────────────┼───────────┘
+         │             │            │             │
+         ▼             ▼            ▼             ▼
+┌─────────────────────────────────────────────────────────────┐
+│              Business Logic Layer (DLLs)                     │
+│  ┌─────────┬──────────┬───────────┬──────────┬─────────┐   │
+│  │ Fachada │  Regra   │Repositório│  Modelo  │  Utils  │   │
+│  └─────────┴──────────┴───────────┴──────────┴─────────┘   │
+└────────────────────────────┬────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│               SQL Server Database                            │
+│                     bd_cmm                                   │
+│                  (477 tabelas)                               │
+└─────────────────────────────────────────────────────────────┘
+                             │
+                             ▼
+┌─────────────────────────────────────────────────────────────┐
+│           File System Storage                                │
+│  F:\ArquivosDigitais\proton\imagemprocesso\                │
+│  D:\DocumentosGED\                                          │
+└─────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────┐
+│                External Integrations                         │
+│  • Sessão Plenária API (expedienteh.cmm.am.gov.br)        │
+│  • Integrador HML (proton-hml.manaus.am.gov.br)           │
+└─────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 18. TECNOLOGIAS UTILIZADAS - RESUMO
+
+### Backend
+- ASP.NET WebForms 4.0
+- ASP.NET MVC 5
+- Web API 2
+- Web Services (ASMX)
+- Visual Basic .NET
+- C# 6.0
+- Entity Framework 6.1.3
+- Dapper
+
+### Frontend
+- Angular 1.6.4
+- jQuery 3.2.1
+- Bootstrap 3/4
+- Toastr
+- AngularJS Cookies
+
+### Banco de Dados
+- SQL Server (ADO.NET)
+- OLE DB Provider
+
+### Segurança
+- ASP.NET Membership
+- Lacuna PKI 2.4.0 (ICP-Brasil)
+- BouncyCastle 1.8.1
+- JWT Bearer Token
+
+### Documentos
+- iText 7.1.16
+- iText Sharp (legacy)
+- Spire.Doc/Pdf
+- DocumentFormat.OpenXml
+- EPPlus
+
+### Protocolos
+- WebDAV (ITHit.WebDAV.Server)
+- SOAP
+- REST
+- HTTP/HTTPS
+
+### Logging
+- Common.Logging 3.4.1
+- Log4net
+
+### Outros
+- BarcodeLib
+- Application Insights
+- LinqKit
+
+---
+
+## 19. CONCLUSÃO
+
+O Sistema CMM é uma **aplicação GED legislativa robusta e completa**, desenvolvida com tecnologias Microsoft (.NET Framework), implementando:
+
+✅ **Gestão completa do ciclo de vida** de documentos  
+✅ **Tramitação legislativa** com workflow configur  vel  
+✅ **Assinatura digital ICP-Brasil** integrada  
+✅ **WebDAV** para edição online  
+✅ **Múltiplas interfaces** (Web, API, Mobile, Web Services)  
+✅ **Auditoria completa** de operações  
+✅ **Integrações externas** via SOAP e REST  
+
+### Principais Desafios
+
+🔴 **Segurança:** Necessita melhorias urgentes (credenciais, CORS, HTTPS)  
+🟡 **Modernização:** Frameworks antigos necessitam atualização  
+🟡 **Performance:** Otimizações necessárias para escalabilidade  
+🟢 **Funcionalidades:** Sistema completo e maduro  
+
+### Estado Atual
+
+**Ambiente:** Teste/Homologação  
+**Status:** Operacional  
+**Maturidade:** Alta (sistema complexo e completo)  
+**Documentação:** Parcial (necessita documentação técnica completa)
+
+---
+
+**Documento gerado em:** 04/02/2026  
+**Baseado em análise de:** Arquivos de configuração, estrutura de diretórios, DLLs, web services e código-fonte parcial  
+**Nível de Análise:** Completo (estrutura, configuração, dependências, rotas)

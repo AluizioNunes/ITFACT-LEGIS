@@ -1,0 +1,58 @@
+fastapi
+uvicorn[standard]
+python-multipart
+pydantic
+pydantic-settings
+
+# Database
+sqlalchemy
+asyncpg
+psycopg[binary]
+
+# Redis
+redis
+hiredis
+
+# MongoDB
+motor
+pymongo
+
+# Neo4j
+neo4j
+
+# RabbitMQ
+aio-pika
+
+# MinIO/S3
+minio
+boto3
+
+# PDF Processing
+PyMuPDF
+marker-pdf
+pypdf
+
+# AI/ML Frameworks
+langchain
+langchain-community
+langchain-core
+llama-index
+llama-index-core
+graphiti-core
+
+# Vector Stores
+chromadb
+faiss-cpu
+pgvector
+
+# Embedding Models
+sentence-transformers
+
+# Utilities
+python-jose[cryptography]
+passlib[bcrypt]
+python-dotenv
+httpx
+aiofiles
+scikit-learn
+numpy

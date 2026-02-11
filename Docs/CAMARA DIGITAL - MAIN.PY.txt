@@ -1,0 +1,295 @@
+"""
+ITFACT-LEGIS - FastAPI Backend
+Sistema de Gestão de Protocolos e Documentos Legislativos
+Câmara Municipal de Manaus
+
+Migrado de: Sistema Proton (.NET Framework 4.0)
+Nova versão: Python 3.12 + FastAPI + PostgreSQL
+"""
+
+from fastapi import FastAPI, Request, status
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
+from contextlib import asynccontextmanager
+import logging
+import time
+from datetime import datetime
+
+# Importações locais
+from app.core.config import settings
+from app.core.database import engine, Base
+from app.core.redis import redis_client
+from app.core.logging_config import setup_logging
+from app.api.v1.router import api_router
+from app.middleware.request_id import RequestIdMiddleware
+from app.middleware.timing import TimingMiddleware
+
+# Setup logging
+setup_logging()
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    Lifecycle manager - executa na inicialização e shutdown da aplicação
+    """
+    # Startup
+    logger.info("=" * 80)
+    logger.info("INICIANDO ITFACT-LEGIS BACKEND")
+    logger.info("=" * 80)
+    
+    # Criar tabelas no banco (apenas em desenvolvimento)
+    if settings.ENVIRONMENT == "development":
+        logger.info("Criando tabelas no banco de dados...")
+        Base.metadata.create_all(bind=engine)
+    
+    # Testar conexão com Redis
+    try:
+        await redis_client.ping()
+        logger.info("✓ Redis conectado")
+    except Exception as e:
+        logger.warning(f"⚠ Redis não disponível: {e}")
+    
+    logger.info(f"✓ Ambiente: {settings.ENVIRONMENT}")
+    logger.info(f"✓ Banco: {settings.DATABASE_URL.split('@')[1] if '@' in settings.DATABASE_URL else 'local'}")
+    logger.info(f"✓ Debug: {settings.DEBUG}")
+    logger.info("=" * 80)
+    
+    yield
+    
+    # Shutdown
+    logger.info("Encerrando aplicação...")
+    await redis_client.close()
+    logger.info("✓ Aplicação encerrada")
+
+
+# Criar aplicação FastAPI
+app = FastAPI(
+    title=settings.PROJECT_NAME,
+    version=settings.VERSION,
+    description="""
+    ## Sistema de Gestão de Protocolos e Documentos Legislativos
+    
+    API REST moderna para gerenciamento de protocolos, tramitações, 
+    minutas, assinaturas digitais e documentos legislativos.
+    
+    ### Funcionalidades Principais:
+    - 📋 Gestão de Protocolos
+    - 🔄 Tramitação de Documentos
+    - ✍️ Minutas e Pareceres
+    - 🔐 Assinatura Digital ICP-Brasil
+    - 📊 Relatórios e Dashboards
+    - 🔍 Pesquisa Avançada com LightRAG
+    - 📁 Gestão de Arquivos
+    
+    ### Migrado de:
+    Sistema Proton (ASP.NET WebForms + VB.NET + SQL Server)
+    
+    ### Stack Atual:
+    - Python 3.12
+    - FastAPI 0.110+
+    - PostgreSQL 16
+    - Redis 7
+    - MongoDB (arquivos)
+    """,
+    openapi_url=f"{settings.API_V1_STR}/openapi.json",
+    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    lifespan=lifespan,
+)
+
+# ============================================================================
+# MIDDLEWARES
+# ============================================================================
+
+# CORS - Configuração segura
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+    expose_headers=["X-Request-ID", "X-Response-Time"],
+)
+
+# GZip - Compressão de respostas
+app.add_middleware(GZipMiddleware, minimum_size=1000)
+
+# Request ID - Tracking de requisições
+app.add_middleware(RequestIdMiddleware)
+
+# Timing - Medição de performance
+app.add_middleware(TimingMiddleware)
+
+
+# ============================================================================
+# EXCEPTION HANDLERS
+# ============================================================================
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """
+    Handler customizado para erros de validação
+    """
+    errors = []
+    for error in exc.errors():
+        errors.append({
+            "field": " -> ".join(str(x) for x in error["loc"]),
+            "message": error["msg"],
+            "type": error["type"],
+        })
+    
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={
+            "detail": "Erro de validação",
+            "errors": errors,
+            "timestamp": datetime.utcnow().isoformat(),
+        },
+    )
+
+
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """
+    Handler global para exceções não tratadas
+    """
+    logger.error(f"Erro não tratado: {exc}", exc_info=True)
+    
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": "Erro interno do servidor",
+            "message": str(exc) if settings.DEBUG else "Entre em contato com o suporte",
+            "timestamp": datetime.utcnow().isoformat(),
+        },
+    )
+
+
+# ============================================================================
+# ROTAS
+# ============================================================================
+
+@app.get("/", tags=["Health"])
+async def root():
+    """
+    Endpoint raiz - informações básicas da API
+    """
+    return {
+        "name": settings.PROJECT_NAME,
+        "version": settings.VERSION,
+        "status": "online",
+        "environment": settings.ENVIRONMENT,
+        "docs": "/docs" if settings.ENVIRONMENT != "production" else None,
+        "timestamp": datetime.utcnow().isoformat(),
+    }
+
+
+@app.get("/health", tags=["Health"])
+async def health_check():
+    """
+    Health check completo - verifica todos os serviços
+    """
+    health_status = {
+        "status": "healthy",
+        "timestamp": datetime.utcnow().isoformat(),
+        "environment": settings.ENVIRONMENT,
+        "version": settings.VERSION,
+        "services": {},
+    }
+    
+    # Verificar banco de dados
+    try:
+        from app.core.database import SessionLocal
+        db = SessionLocal()
+        db.execute("SELECT 1")
+        db.close()
+        health_status["services"]["database"] = "healthy"
+    except Exception as e:
+        health_status["services"]["database"] = f"unhealthy: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    # Verificar Redis
+    try:
+        await redis_client.ping()
+        health_status["services"]["redis"] = "healthy"
+    except Exception as e:
+        health_status["services"]["redis"] = f"unhealthy: {str(e)}"
+        health_status["status"] = "degraded"
+    
+    return health_status
+
+
+@app.get("/metrics", tags=["Health"])
+async def metrics():
+    """
+    Métricas básicas da aplicação
+    """
+    from app.core.database import SessionLocal
+    
+    metrics_data = {
+        "timestamp": datetime.utcnow().isoformat(),
+        "uptime": time.time(),  # Será calculado com mais precisão em produção
+    }
+    
+    # Contar protocolos
+    try:
+        db = SessionLocal()
+        from app.models.protocolo import Protocolo
+        total_protocolos = db.query(Protocolo).count()
+        protocolos_ativos = db.query(Protocolo).filter(Protocolo.cod_ativo == 1).count()
+        db.close()
+        
+        metrics_data["protocolos"] = {
+            "total": total_protocolos,
+            "ativos": protocolos_ativos,
+        }
+    except Exception as e:
+        logger.error(f"Erro ao coletar métricas: {e}")
+        metrics_data["protocolos"] = {"error": str(e)}
+    
+    return metrics_data
+
+
+# Incluir routers da API v1
+app.include_router(api_router, prefix=settings.API_V1_STR)
+
+
+# ============================================================================
+# STARTUP EVENT (adicional ao lifespan)
+# ============================================================================
+
+@app.on_event("startup")
+async def startup_event():
+    """
+    Evento adicional de startup (executado após lifespan startup)
+    """
+    logger.info("🚀 API pronta para receber requisições")
+
+
+@app.on_event("shutdown")
+async def shutdown_event():
+    """
+    Evento adicional de shutdown (executado antes do lifespan shutdown)
+    """
+    logger.info("👋 Encerrando API...")
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+if __name__ == "__main__":
+    import uvicorn
+    
+    uvicorn.run(
+        "main:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=settings.DEBUG,
+        log_level="info",
+        access_log=True,
+    )

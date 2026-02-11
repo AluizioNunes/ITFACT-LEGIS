@@ -1,0 +1,827 @@
+# ANÁLISE COMPLETA DO SISTEMA CMM
+## Câmara Municipal de Manaus - Sistema Proton
+
+**Data da Análise:** 04 de fevereiro de 2026  
+**Banco de Dados:** bd_cmm (SQL Server)  
+**Aplicação:** D:\inetpub\wwwroot\cmm\proton  
+
+---
+
+## 📊 1. ANÁLISE DAS 20 MAIORES TABELAS
+
+### Ranking por Volume de Registros
+
+| # | Schema | Tabela | Registros | Função |
+|---|--------|--------|-----------|--------|
+| 1 | dbo | tbl_sistema_historico | 9.971.387 | Histórico de ações do sistema |
+| 2 | dbo | tbl_protocolo_movimento | 2.672.565 | Movimentações de protocolos |
+| 3 | dbo | tbl_protocolo_visualizador | 1.558.930 | Controle de visualizações |
+| 4 | dbo | tbl_sistema_log | 1.512.694 | Logs do sistema |
+| 5 | dbo | tbl_protocolo_documento | 1.258.876 | **DOCUMENTOS (arquivos)** |
+| 6 | dbo | tbl_protocolo_interessado | 640.751 | Interessados nos protocolos |
+| 7 | dbo | tbl_protocolo | 636.972 | **PROTOCOLOS PRINCIPAIS** |
+| 8 | dbo | tbl_protocolo_arquivo | 619.666 | **ARQUIVOS FÍSICOS** |
+| 9 | dbo | tbl_documento_assinatura | 496.555 | **ASSINATURAS DIGITAIS** |
+| 10 | dbo | tbl_protocolo_distribuicao | 427.003 | Distribuições |
+| 11 | dbo | tbl_protocolo_prazo_resposta | 361.146 | Prazos de resposta |
+| 12 | dbo | tbl_propositura_legislativa_tramitacao | 309.301 | Tramitações legislativas |
+| 13 | dbo | tbl_propositura_legislativa_fase_historico | 307.419 | Histórico de fases |
+| 14 | dbo | tbl_propositura_legislativa_documento | 279.762 | **DOCS LEGISLATIVOS** |
+| 15 | dbo | tbl_protocolo_anexo | 265.197 | Anexos de protocolos |
+| 16 | dbo | tbl_seg_usuario_perfil_funcao | 211.849 | Perfis de usuários |
+| 17 | dbo | tbl_pesquisa_arquivo_bkp | 163.438 | Backup de pesquisas |
+| 18 | dbo | tbl_protocolo_assinatura | 157.888 | Assinaturas de protocolos |
+| 19 | dbo | tbl_propositura_legislativa_anexo | 121.769 | Anexos legislativos |
+| 20 | dbo | tbl_protocolo_fisico | 114.432 | Controle físico |
+
+### Observações Críticas:
+
+✅ **Total de protocolos:** 636.972 registros  
+✅ **Total de documentos/arquivos:** 1.258.876 + 619.666 = **1.878.542 arquivos**  
+✅ **Total de assinaturas digitais:** 496.555 + 157.888 = **654.443 assinaturas**  
+✅ **Sistema altamente movimentado:** 2,6 milhões de tramitações  
+✅ **Sistema com auditoria completa:** 9,9 milhões de logs históricos  
+
+---
+
+## 🗂️ 2. ESTRUTURA DA TABELA tbl_protocolo (49 COLUNAS)
+
+### Colunas Principais (Identificação)
+
+| Coluna | Tipo | Tamanho | Nullable | Default | Descrição |
+|--------|------|---------|----------|---------|-----------|
+| cod_protocolo | int | - | NO | - | **PK - Código único** |
+| txt_numero | varchar | 21 | NO | - | **Número do protocolo (NUP)** |
+| txt_numero_anterior | varchar | 20 | YES | - | Número do sistema antigo |
+| txt_referencia | varchar | 255 | YES | - | Referência externa |
+| txt_identificacao | varchar | 100 | YES | - | Identificação adicional |
+
+### Colunas de Classificação
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| cod_protocolo_tipo | int | NO | 0 | Tipo do protocolo |
+| cod_assunto | int | NO | 10000 | **Assunto principal** |
+| cod_assunto_secundario | int | YES | - | Assunto secundário |
+| cod_documento_tipo | int | YES | - | Tipo de documento |
+| cod_situacao | int | NO | 1 | **Situação atual** |
+
+### Colunas de Datas
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| dt_abertura | datetime | NO | getdate() | Data de abertura |
+| dt_protocolo | datetime | NO | getdate() | **Data do protocolo** |
+| dt_recebimento | datetime | YES | - | Data de recebimento |
+| dt_conformidade | datetime | YES | - | Data de conformidade |
+| dt_prazo_resposta | datetime | YES | - | Prazo para resposta |
+| dt_tramitacao | datetime | YES | - | Última tramitação |
+| dt_vencimento | datetime | YES | - | Data de vencimento |
+| dt_resultado_analise | datetime | YES | - | Data de análise |
+
+### Colunas de Origem/Destino
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| cod_protocolo_origem | int | NO | 1 | Origem do protocolo |
+| cod_orgao_demanda | int | YES | - | Órgão demandante |
+| cod_orgao_atual | int | YES | 0 | **Órgão atual** |
+| cod_orgao_atributo | int | YES | - | Órgão de atributo |
+
+### Colunas de Controle
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| cod_internet | int | NO | 1 | Acesso internet |
+| cod_suporte_tipo | int | YES | 0 | Tipo de suporte |
+| cod_copia | int | NO | 0 | É cópia? |
+| cod_copia_controlada | int | NO | 0 | Cópia controlada? |
+| cod_recebimento | int | NO | 0 | Código de recebimento |
+| cod_ativo | int | NO | 1 | **Ativo/Inativo** |
+| cod_migrado | int | YES | 0 | Foi migrado? |
+| cod_original | int | NO | 1 | É original? |
+
+### Colunas de Fluxo
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| cod_fluxo_ativo | int | YES | 0 | Fluxo ativo |
+| cod_emprestimo_ativo | int | YES | 0 | Empréstimo ativo |
+| cod_juntado_ativo | int | YES | 0 | Juntado ativo |
+| cod_anexo | int | YES | - | Anexo |
+
+### Colunas de Responsabilidade
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| cod_usuario_cuidado | int | YES | - | Usuário responsável |
+| cod_usuario_responsavel | int | YES | - | Responsável geral |
+| cod_usuario_analise | int | YES | - | Usuário que analisou |
+
+### Colunas de Conteúdo
+
+| Coluna | Tipo | Tamanho | Nullable | Descrição |
+|--------|------|---------|----------|-----------|
+| txt_resumo | text | 2GB | YES | **Resumo do protocolo** |
+| txt_texto | text | 2GB | YES | Texto completo |
+
+### Colunas de Localização
+
+| Coluna | Tipo | Tamanho | Nullable | Descrição |
+|--------|------|---------|----------|-----------|
+| txt_localizacao_fisica | varchar | 255 | YES | Localização física |
+
+### Colunas de Referências Externas
+
+| Coluna | Tipo | Tamanho | Nullable | Descrição |
+|--------|------|---------|----------|-----------|
+| txt_referencia_os | varchar | 50 | YES | Referência OS |
+| txt_referencia_uc | varchar | 50 | YES | Referência UC |
+| txt_referencia_us | varchar | 50 | YES | Referência US |
+| txt_numero_projeto | varchar | 50 | YES | Número do projeto |
+
+### Colunas de Controle Adicional
+
+| Coluna | Tipo | Nullable | Default | Descrição |
+|--------|------|----------|---------|-----------|
+| cod_protocolo_opcao | int | NO | 0 | Opções do protocolo |
+| cod_vistoria | int | YES | - | Vistoria relacionada |
+| cod_prioridade | int | NO | 0 | Prioridade |
+| cod_acesso_tipo | int | NO | - | **Tipo de acesso** |
+| seq_carga_processo | int | YES | - | Sequência de carga |
+
+---
+
+## 📄 3. PÁGINAS .ASPX DO SISTEMA (265 ARQUIVOS)
+
+### Distribuição por Funcionalidade
+
+#### 3.1. INCLUSÃO DE PROTOCOLOS (16 páginas)
+- incluir_arquivo.aspx
+- incluir_arquivo_minuta.aspx
+- incluir_arquivo_multiplo.aspx
+- incluir_assunto.aspx
+- incluir_caixa.aspx
+- incluir_concessao_consulta.aspx
+- incluir_documento.aspx
+- incluir_impressao.aspx
+- incluir_interessado.aspx
+- incluir_interessado_invalido.aspx
+- incluir_interessado_orgao.aspx
+- incluir_interessado_valido.aspx
+- incluir_opcao.aspx
+- incluir_palavra_chave.aspx
+- incluir_pasta.aspx
+- incluir_pre_despacho.aspx
+- incluir_processo.aspx
+- incluir_processo_autuado.aspx
+- incluir_processo_passivo.aspx
+- incluir_propositura.aspx
+- incluir_protocolo.aspx
+- incluir_protocolo_unico.aspx
+- incluir_remetente.aspx
+- incluir_usuario.aspx
+
+#### 3.2. TRAMITAÇÃO (22 páginas)
+- tramitar.aspx
+- movimentar.aspx
+- movimentar_cancelar.aspx
+- movimentar_cancelar_doc.aspx
+- movimentar_copia.aspx
+- distribuicao.aspx
+- distribuicao_receber.aspx
+- distribuicao_receber_doc.aspx
+- receber.aspx
+- receber_doc.aspx
+- recebimento.aspx
+- emprestar.aspx
+- emprestimo_receber.aspx
+- emprestimo_receber_doc.aspx
+- guia.aspx
+- guia_doc.aspx
+- guia_tramitacao.aspx
+- guia_tramitacao_doc.aspx
+- guia_tramitacao_imprimir.aspx
+- diligencia.aspx
+- providenciar.aspx
+- sobrestar.aspx
+
+#### 3.3. MINUTAS (26 páginas)
+- minuta.aspx
+- minuta_alterar.aspx
+- minuta_arquivo.aspx
+- minuta_associar_protocolo.aspx
+- minuta_avaliacao.aspx
+- minuta_avaliacao_finalizar.aspx
+- minuta_avaliacao_imprimir.aspx
+- minuta_avaliacao_incluir.aspx
+- minuta_avaliacao_pessoal.aspx
+- minuta_avaliar.aspx
+- minuta_distribuicao_receber.aspx
+- minuta_distribuir.aspx
+- minuta_excluir.aspx
+- minuta_historico.aspx
+- minuta_imprimir.aspx
+- minuta_incluir.aspx
+- minuta_pesquisa_avancada.aspx
+- minuta_receber.aspx
+- minuta_recusar.aspx
+- minuta_tramitar.aspx
+- minuta_tramitar_cancelar.aspx
+- minuta_versao.aspx
+
+#### 3.4. ASSINATURA DIGITAL (15 páginas)
+- assinador.aspx
+- assinador_arquivos_definicao.aspx
+- assinador_login.aspx
+- assinatura_definir.aspx
+- assinatura_pessoal.aspx
+- assinatura_recusa.aspx
+- doc_assinatura_pessoal.aspx
+- excluir_assinatura.aspx
+- excluir_usuario_assinatura.aspx
+- excluir_usuario_assinatura_legislativa.aspx
+- listar_arquivo_assinatura.aspx
+- listar_arquivo_assinatura_definicao.aspx
+- ler_assinador.aspx
+- ler_excluir_assinatura.aspx
+
+#### 3.5. EXPEDIÇÃO (18 páginas)
+- expedicao.aspx
+- expedicao_arquivo_digital.aspx
+- expedicao_cancelar.aspx
+- expedicao_digital.aspx
+- expedicao_guia.aspx
+- expedicao_guia_doc.aspx
+- expedicao_guia_imprimir.aspx
+- expedicao_guia_outros_protocolos.aspx
+- expedicao_integracao.aspx
+- expedicao_integracao_listagem.aspx
+- expedicao_listar.aspx
+- expedicao_opcao.aspx
+- expedicao_protocolar.aspx
+- expedicao_protocolar_processo.aspx
+- expedicao_receber.aspx
+- expedicao_receber_integracao.aspx
+
+#### 3.6. PESQUISA (9 páginas)
+- pesquisa_simples.aspx
+- pesquisa_simples_doc.aspx
+- pesquisa_avancada.aspx
+- pesquisa_avancada_doc.aspx
+- pesquisa_arquivo_digital_bkp.aspx
+- pesquisa_processo_concessao.aspx
+- pesquisa_usuario_concessao.aspx
+
+#### 3.7. RELATÓRIOS (30+ páginas)
+- relatorio_acompanhamento.aspx
+- relatorio_arquivo_digital.aspx
+- relatorio_arquivo_setorial.aspx
+- relatorio_banco.aspx
+- relatorio_banco_doc.aspx
+- relatorio_classificacao.aspx
+- relatorio_comentario.aspx
+- relatorio_controle_prazo.aspx
+- relatorio_controle_prazo_doc.aspx
+- relatorio_destinatario.aspx
+- relatorio_documentos_assinados.aspx
+- relatorio_documentos_tramitados.aspx
+- relatorio_expedicao.aspx
+- relatorio_expedicao_digital.aspx
+- relatorio_expedicao_externa.aspx
+- relatorio_expedicao_integracao.aspx
+- relatorio_juntada.aspx
+- relatorio_minuta.aspx
+- relatorio_nao_distribuido.aspx
+- relatorio_nao_recebidos.aspx
+- relatorio_nao_recebido_gerencial.aspx
+- relatorio_palavra.aspx
+- relatorio_prazo_guarda.aspx
+- relatorio_prazo_resposta.aspx
+- relatorio_producao.aspx
+- relatorio_producao_doc.aspx
+- relatorio_recebimento.aspx
+- relatorio_sobrestar.aspx
+- relatorio_sobrestar_doc.aspx
+- relatorio_suporte.aspx
+- relatorio_tramitacao.aspx
+- relatorio_tramitacao_doc.aspx
+- relatorio_tramitacao_estatistico.aspx
+- relatorio_unidade.aspx
+
+#### 3.8. VISUALIZAÇÃO E IMPRESSÃO (16 páginas)
+- ler.aspx
+- ler_arq_original.aspx
+- detalhamento.aspx
+- historico.aspx
+- impressao.aspx
+- impressao_arquivo.aspx
+- impressao_arquivo_assinatura.aspx
+- impressao_arquivo_concessao.aspx
+- impressao_arquivo_contador.aspx
+- impressao_arquivo_controle.aspx
+- impressao_arquivo_esquerdo.aspx
+- impressao_processo.aspx
+- impressao_processo_concessao.aspx
+- impressao_restrito.aspx
+- capa.aspx
+- capa_processo.aspx
+- ficha.aspx
+- ficha_despacho.aspx
+
+#### 3.9. GESTÃO DOCUMENTAL (12 páginas)
+- anexar.aspx
+- anexar_doc.aspx
+- anexar_doc_listagem.aspx
+- anexar_doc_propositura.aspx
+- apensar.aspx
+- arquivar.aspx
+- eliminar.aspx
+- eliminar_imprimir.aspx
+- eliminar_incluir.aspx
+- eliminar_listar.aspx
+- vinculacao.aspx
+- volume.aspx
+
+#### 3.10. COMUNICAÇÃO (10 páginas)
+- comunicacao_electronica.aspx
+- comunicacao_electronica_detalhar.aspx
+- comunicacao_electronica_detalhar_usuario.aspx
+- comunicacao_electronica_detalhar_usuario_doc.aspx
+- comunicacao_electronica_listar.aspx
+- comunicacao_electronica_listar_usuario.aspx
+- comunicacao_electronica_listar_usuario_doc.aspx
+- consulta_publica.aspx
+- consulta_publica_detalhar.aspx
+- consulta_publica_resultado.aspx
+
+#### 3.11. CONTROLES ESPECÍFICOS (15 páginas)
+- acompanhar.aspx
+- alterar.aspx
+- alterar_processo.aspx
+- cancelar.aspx
+- comentario.aspx
+- controle_prazo.aspx
+- prazo_resposta.aspx
+- prazo_resposta_doc.aspx
+- check_list.aspx
+- etiqueta.aspx
+- gerar_etiqueta.aspx
+- responsavel.aspx
+- validacao.aspx
+- pauta.aspx
+- original.aspx
+
+#### 3.12. UTILITÁRIOS (10 páginas)
+- CodigoBarra.aspx
+- Criptografia.aspx
+- exportar_excel.aspx
+- upload.aspx
+- ftp.aspx
+- pdf_consolidar.aspx
+- calcula_expedicao.aspx
+
+#### 3.13. CASOS ESPECÍFICOS (8 páginas)
+- aposentadoria.aspx
+- pensao.aspx
+- dotacao_orcamentaria.aspx
+- concessao_consultar.aspx
+- palavra_chave.aspx
+- publicacao.aspx
+- pre_protocolo.aspx
+- informar_andamento_propositura.aspx
+
+#### 3.14. LISTAGENS (10 páginas)
+- listagem.aspx
+- listagem_concessao.aspx
+- listagem_doc.aspx
+- listar_arquivado.aspx
+- listar_permanente.aspx
+- resultado_interessado.aspx
+
+#### 3.15. CÓPIAS (2 páginas)
+- copia_excluir.aspx
+- copia_incluir.aspx
+
+**TOTAL: 265 arquivos .aspx**
+
+---
+
+## ⚙️ 4. CONFIGURAÇÕES DO WEB.CONFIG
+
+### 4.1. Segurança e Criptografia
+
+```xml
+<appSettings>
+    <add key="txt_criptogafia_chave" value="Gr4_41rp0rT" />
+    <add key="txt_criptogafia_salt" value="pr8t8n1kh8n" />
+    <add key="AppId" value="20" />
+</appSettings>
+```
+
+**⚠️ CRÍTICO:** Chaves de criptografia expostas em texto plano!
+
+### 4.2. Connection Strings
+
+```xml
+<connectionStrings>
+    <add name="ProtonConnectionString" 
+         providerName="System.Data.SqlClient" 
+         connectionString="Data Source=(local);
+                          Initial Catalog=bd_cmm;
+                          Persist Security Info=True;
+                          User ID=iusr_cmm;
+                          Password=ProtonCmm4321;
+                          Connection Timeout=30;
+                          MultipleActiveResultSets=True" />
+    
+    <add name="ProtonOleDB" 
+         providerName="System.Data.OleDb" 
+         connectionString="Provider=SQLOLEDB.1;
+                          Data Source=(local);
+                          Initial Catalog=bd_cmm;
+                          Persist Security Info=True;
+                          User ID=iusr_cmm;
+                          Password=ProtonCmm4321;
+                          Connection Timeout=30" />
+</connectionStrings>
+```
+
+**Dados de Conexão:**
+- **Servidor:** (local)
+- **Banco:** bd_cmm
+- **Usuário:** iusr_cmm
+- **Senha:** ProtonCmm4321
+- **MARS:** Habilitado
+
+### 4.3. URLs e Integrações
+
+```xml
+<add key="url" value="http://cd02.cmm.am.gov.br/proton/proton/" />
+<add key="txt_url_verificacao_documento" value="https://cd02.cmm.am.gov.br/verificador" />
+<add key="txt_url_verificacao_usuario_externo" value="https://cd02.cmm.am.gov.br/proton/proton/UsuarioExterno" />
+<add key="sessaoPlenariaApiUrl" value="https://expedienteh.cmm.am.gov.br/api/ikon-services"/>
+<add key="sessaoPlenariaApiToken" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."/>
+```
+
+**⚠️ CRÍTICO:** Token JWT exposto em texto plano!
+
+### 4.4. Configurações do Sistema
+
+```xml
+<add key="ambiente" value="teste" />
+<add key="termo_copia" value="CÓPIA" />
+<add key="DebugLoggingEnabled" value="true" />
+<add key="LogPath" value="~/proton/imagemprocesso/Logs" />
+<add key="RepositoryPath" value="~/" />
+<add key="diretorioUploadFotosParlamentares" value="~/proton/images/temp/uploads/" />
+<add key="legislativo-palamentar-cargo" value="VEREADOR(A)"/>
+```
+
+### 4.5. ASP.NET Settings
+
+```xml
+<httpRuntime maxRequestLength="2097151"        <!-- 2GB -->
+             executionTimeout="2400"           <!-- 40 minutos -->
+             requestPathInvalidCharacters="" 
+             relaxedUrlToFileSystemMapping="true" 
+             requestValidationMode="2.0" />
+
+<customErrors mode="Off" />                    <!-- ⚠️ Modo debug em produção! -->
+
+<sessionState timeout="120" />                 <!-- 2 horas -->
+```
+
+### 4.6. Membership Provider
+
+```xml
+<membership defaultProvider="CSLIB_MembershipProvider" 
+            userIsOnlineTimeWindow="15">
+    <providers>
+        <add name="CSLIB_MembershipProvider" 
+             type="CSLIB.UserManager.CSLIB_MembershipProvider, CSLIB.UserManager" 
+             applicationName="Eproton" 
+             enablePasswordRetrieval="false" 
+             enablePasswordReset="false" 
+             requiresQuestionAndAnswer="false" 
+             requiresUniqueEmail="false" 
+             passwordFormat="Hashed" 
+             applicationid="20" 
+             PasswordStrengthRegEx="*" />
+    </providers>
+</membership>
+```
+
+### 4.7. Machine Key
+
+```xml
+<machineKey validationKey="938D5CD846EE2473F74142CE75D1841A95440A6B702B7F55E2FF4440CB701A1B1B0BFA82E8279CC5703CCFCB614F30EFBB4278773EA35F15D97D33E7C4FAB300" 
+            decryptionKey="ABBC21530988F61CC3A7A5EFC2FBCABD269718FA5CA7354D8C532EDAD8818A26" 
+            validation="SHA1" 
+            decryption="AES" />
+```
+
+**⚠️ CRÍTICO:** Machine key exposta!
+
+### 4.8. WebDAV Configuration
+
+```xml
+<httpHandlers>
+    <add path="*" verb="OPTIONS,PROPFIND" type="proton.WebDAVServerImpl.DavHandler" />
+</httpHandlers>
+
+<httpModules>
+    <add name="ITHitPutUploadProgressAndResumeModule" 
+         type="ITHit.WebDAV.Server.ResumableUpload.PutUploadProgressAndResumeModule, ITHit.WebDAV.Server" />
+    <add name="ITHitPostUploadProgressModule" 
+         type="ITHit.WebDAV.Server.PostUploadProgressModule, ITHit.WebDAV.Server" />
+</httpModules>
+
+<location path="proton/imagemprocesso/minuta">
+    <system.web>
+        <httpRuntime executionTimeout="2400" 
+                     maxRequestLength="2097151" 
+                     requestPathInvalidCharacters="" 
+                     relaxedUrlToFileSystemMapping="true" />
+    </system.web>
+</location>
+```
+
+### 4.9. CORS Configuration
+
+```xml
+<httpProtocol>
+    <customHeaders>
+        <add name="Access-Control-Allow-Origin" value="*" />
+    </customHeaders>
+</httpProtocol>
+```
+
+**⚠️ CRÍTICO:** CORS totalmente aberto!
+
+---
+
+## 📚 5. DLLs DO SISTEMA (46 BIBLIOTECAS)
+
+### 5.1. DLLs Proprietárias (Ikhon - 12 DLLs)
+
+| DLL | Função Provável |
+|-----|-----------------|
+| **Ikhon.ePROTON.Intranet.dll** | Interface Web Principal |
+| **Ikhon.ePROTON.Repositorio.dll** | Camada de Acesso a Dados (DAL) |
+| **Ikhon.ePROTON.Regra.dll** | Regras de Negócio (BLL) |
+| **Ikhon.ePROTON.Modelo.dll** | Entidades e Models |
+| **Ikhon.ePROTON.Fachada.dll** | Fachada/API Pública |
+| **Ikhon.ePROTON.Infra.Core.dll** | Infraestrutura Core |
+| **Ikhon.ePROTON.Apresentacao.dll** | Camada de Apresentação |
+| **Ikhon.ePROTON.Utils.dll** | Utilitários |
+| **Ikhon.ePROTON.WebDav.dll** | Implementação WebDAV |
+| **Ikhon.ePROTON.ContextoDB.dll** | Contexto Entity Framework |
+| **Ikhon.ePROTON.Seguranca.dll** | Segurança/Autenticação |
+| **Ikhon.ePROTON.Data.dll** | Acesso a Dados Base |
+
+### 5.2. Framework e ORM (4 DLLs)
+
+| DLL | Versão/Info | Função |
+|-----|-------------|--------|
+| EntityFramework.dll | 6.x | ORM Principal |
+| EntityFramework.SqlServer.dll | 6.x | Provider SQL Server |
+| Dapper.dll | - | Micro-ORM |
+| LinqKit.dll | - | Extensões LINQ |
+
+### 5.3. Documentos e PDFs (14 DLLs)
+
+| DLL | Função |
+|-----|--------|
+| **itext.kernel.dll** | Core iText 7 |
+| **itext.layout.dll** | Layout iText 7 |
+| **itext.io.dll** | I/O iText 7 |
+| **itext.forms.dll** | Formulários PDF |
+| **itext.sign.dll** | Assinatura PDF |
+| **itext.pdfa.dll** | PDF/A |
+| **itext.barcodes.dll** | Códigos de barra |
+| **itext.styledxmlparser.dll** | Parser XML |
+| **itext.svg.dll** | SVG |
+| **itextsharp.dll** | iText 5 (legado) |
+| **Spire.Pdf.dll** | Spire PDF |
+| **Spire.Doc.dll** | Spire Word |
+| **Spire.License.dll** | Licença Spire |
+| **DocumentFormat.OpenXml.dll** | Office Open XML |
+
+### 5.4. Assinatura Digital (5 DLLs)
+
+| DLL | Função |
+|-----|--------|
+| **Lacuna.Pki.dll** | ICP-Brasil PKI |
+| **Lacuna.T8.dll** | Lacuna T8 |
+| **BouncyCastle.Crypto.dll** | Criptografia |
+| **ikcAssinatura.dll** | Assinatura customizada |
+| **System.Security.dll** | Segurança .NET |
+
+### 5.5. Planilhas e Excel (1 DLL)
+
+| DLL | Função |
+|-----|--------|
+| EPPlus.dll | Geração Excel |
+
+### 5.6. WebDAV (1 DLL)
+
+| DLL | Função |
+|-----|--------|
+| ITHit.WebDAV.Server.dll | Servidor WebDAV |
+
+### 5.7. Frameworks Auxiliares (5 DLLs)
+
+| DLL | Função |
+|-----|--------|
+| CSLIB.dll | Framework customizado |
+| CSLIB.UserManager.dll | Gestão de usuários |
+| CSLIB_URLoginControl.dll | Controle de login |
+| Common.Logging.dll | Logging abstrato |
+| Common.Logging.Core.dll | Core logging |
+
+### 5.8. Utilitários (4 DLLs)
+
+| DLL | Função |
+|-----|--------|
+| Newtonsoft.Json.dll | Serialização JSON |
+| log4net.dll | Logging |
+| BarcodeLib.dll | Códigos de barra |
+| Microsoft.mshtml.dll | HTML parsing |
+
+**TOTAL: 46 DLLs**
+
+---
+
+## 🎯 6. ANÁLISE CRÍTICA PARA MIGRAÇÃO
+
+### 6.1. Pontos Fortes do Sistema Atual
+
+✅ **Arquitetura em Camadas**
+- Separação clara: Apresentação → Fachada → Regra → Repositório → Modelo
+- Facilita entendimento e migração
+
+✅ **Banco de Dados Robusto**
+- 636.972 protocolos
+- 1.878.542 documentos/arquivos
+- Auditoria completa (9,9M registros históricos)
+
+✅ **Funcionalidades Completas**
+- 265 páginas .aspx
+- Sistema muito maduro
+- Todas as operações de protocolo/tramitação
+
+✅ **Assinatura Digital ICP-Brasil**
+- 654.443 assinaturas registradas
+- Lacuna PKI implementado
+- PDF/A compliant
+
+### 6.2. Desafios para Migração
+
+🔴 **CRÍTICO - Segurança**
+- Credenciais em texto plano
+- Chaves de criptografia expostas
+- JWT token exposto
+- Machine key exposta
+- CORS totalmente aberto
+- Custom errors desabilitado
+- Debug mode em produção
+
+🔴 **CRÍTICO - Tecnologia Obsoleta**
+- .NET Framework 4.0 (2010)
+- ASP.NET WebForms (tecnologia descontinuada)
+- VB.NET em algumas DLLs
+- iText 5 + iText 7 (duplicação)
+- Entity Framework 6.x (não é EF Core)
+
+🟡 **ATENÇÃO - Complexidade**
+- 265 páginas .aspx para migrar
+- Lógica espalhada em code-behind
+- ViewState e PostBack (WebForms)
+- Múltiplas bibliotecas PDF
+- WebDAV implementação customizada
+
+🟡 **ATENÇÃO - Volume de Dados**
+- 1,8 milhões de arquivos para migrar
+- 9,9 milhões de logs históricos
+- Estrutura de arquivos em Z:\ e G:\
+- Nomenclatura de arquivos complexa
+
+### 6.3. Estratégia de Migração Recomendada
+
+#### FASE 1: Análise e Planejamento
+1. ✅ Decompilação de todas as DLLs (ILSpy)
+2. ✅ Mapeamento completo do banco de dados
+3. ✅ Análise de dependências
+4. ✅ Documentação de regras de negócio
+5. ⏳ Definição de arquitetura alvo
+
+#### FASE 2: Preparação
+1. Criar estrutura .NET 8
+2. Migrar entidades (Modelo)
+3. Criar repositórios (Dapper ou EF Core)
+4. Implementar regras de negócio
+5. Criar APIs REST
+
+#### FASE 3: Migração Incremental
+1. **Módulo 1:** Pesquisa/Consulta (read-only)
+2. **Módulo 2:** Inclusão de protocolos
+3. **Módulo 3:** Tramitação
+4. **Módulo 4:** Minutas
+5. **Módulo 5:** Assinatura digital
+6. **Módulo 6:** Relatórios
+
+#### FASE 4: Migração de Dados
+1. Scripts de migração de arquivos
+2. Validação de integridade
+3. Testes de carga
+4. Rollback plan
+
+#### FASE 5: Homologação e Go-Live
+1. Testes integrados
+2. Treinamento de usuários
+3. Cutover planejado
+4. Suporte pós-implantação
+
+---
+
+## 📋 7. CHECKLIST DE PRÓXIMOS PASSOS
+
+### Análise de Código (ILSpy)
+- [ ] Decompilação de Ikhon.ePROTON.Modelo.dll
+- [ ] Decompilação de Ikhon.ePROTON.Repositorio.dll
+- [ ] Decompilação de Ikhon.ePROTON.Regra.dll
+- [ ] Decompilação de Ikhon.ePROTON.Fachada.dll
+- [ ] Decompilação de Ikhon.ePROTON.Utils.dll
+- [ ] Documentação de regras de negócio
+- [ ] Extração de queries SQL
+
+### Banco de Dados
+- [ ] Script completo do schema
+- [ ] Relacionamentos entre tabelas
+- [ ] Stored procedures e functions
+- [ ] Views existentes
+- [ ] Triggers
+- [ ] Índices
+
+### Arquivos
+- [ ] Inventário completo Z:\imagemprocesso
+- [ ] Inventário completo G:\sapl
+- [ ] Scripts de validação de integridade
+- [ ] Plano de migração de arquivos
+
+### Arquitetura Nova Aplicação
+- [ ] Definir stack tecnológico
+- [ ] Desenhar arquitetura
+- [ ] Escolher framework frontend
+- [ ] Definir estratégia de APIs
+- [ ] Plano de autenticação/autorização
+
+---
+
+## 🚀 8. RECOMENDAÇÕES TÉCNICAS
+
+### Stack Recomendado para Nova Aplicação
+
+**Backend:**
+- .NET 8 (LTS)
+- ASP.NET Core Web API
+- Entity Framework Core 8
+- Dapper (queries otimizadas)
+- MediatR (CQRS)
+- FluentValidation
+
+**Frontend:**
+- React 18+ ou Angular 17+
+- TypeScript
+- Tailwind CSS
+- React Query ou TanStack Query
+- Zustand ou Redux Toolkit
+
+**Banco de Dados:**
+- SQL Server 2022
+- Migrações com FluentMigrator ou EF Core Migrations
+
+**Assinatura Digital:**
+- Lacuna PKI (manter)
+- iText 8 (versão mais recente)
+
+**Armazenamento:**
+- Azure Blob Storage ou MinIO (S3-compatible)
+- Manter estrutura de diretórios atual como fallback
+
+**Autenticação:**
+- Identity Server ou Azure AD B2C
+- JWT tokens
+- OAuth 2.0 / OpenID Connect
+
+**Observabilidade:**
+- Serilog
+- Application Insights ou Seq
+- Grafana + Prometheus
+
+---
+
+**Documento gerado em:** 04/02/2026  
+**Próximo passo:** Decompilação de DLLs e geração de código  
+**Status:** Pronto para desenvolvimento

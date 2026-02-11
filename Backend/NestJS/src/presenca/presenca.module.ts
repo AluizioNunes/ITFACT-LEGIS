@@ -1,0 +1,12 @@
+import { Module } from '@nestjs/common';
+import { PresencaService } from './presenca.service';
+import { PresencaController } from './presenca.controller';
+import { PrismaModule } from '../prisma/prisma.module';
+
+@Module({
+    imports: [PrismaModule],
+    controllers: [PresencaController],
+    providers: [PresencaService],
+    exports: [PresencaService],
+})
+export class PresencaModule { }

@@ -1,0 +1,979 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id             String        @id @default(uuid())
+  email          String        @unique
+  name           String
+  password       String
+  role           Role          @default(USER)
+  orgaoId        String?
+  orgao          Orgao?        @relation(fields: [orgaoId], references: [id])
+  departamentoId String?
+  departamento   Departamento? @relation(fields: [departamentoId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  vereador             SimplifiedVereador?
+  documents            Document[]
+  proposituras         Propositura[]
+  messagesSent         Message[]
+  protocolos           Protocolo[]
+  tramitacoesEnviadas  Tramitacao[]        @relation("SenderUser")
+  tramitacoesRecebidas Tramitacao[]        @relation("ReceiverUser")
+
+  @@map("users")
+}
+
+model SimplifiedVereador {
+  id                   String               @id @default(uuid())
+  userId               String?              @unique
+  user                 User?                @relation(fields: [userId], references: [id])
+  nomeCompleto         String
+  nomeParlamentar      String
+  cpf                  String               @unique
+  email                String?
+  biografia            String?
+  partidoId            String
+  partido              Partido              @relation(fields: [partidoId], references: [id])
+  mandatos             MandatoVereador[]
+  presencas            Presenca[]
+  membrosComissao      MembroComissao[]
+  liderancaBancada     Bancada[]            @relation("LiderBancada")
+  viceLiderancaBancada Bancada[]            @relation("ViceLiderBancada")
+  emendasOrcamentarias EmendaOrcamentaria[]
+  inscricoesSessao     InscricaoOrador[]
+  votos                Voto[]
+  membroMesa           MembroMesa[]
+  licencas             LicencaVereador[]
+
+  @@map("vereadores")
+}
+
+model Orgao {
+  id            String         @id @default(uuid())
+  nome          String
+  cnpj          String         @unique
+  departamentos Departamento[]
+  users         User[]
+  messages      Message[]
+  protocolos    Protocolo[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  @@map("orgaos")
+}
+
+model Departamento {
+  id                 String       @id @default(uuid())
+  nome               String
+  sigla              String       @unique
+  orgaoId            String?
+  orgao              Orgao?       @relation(fields: [orgaoId], references: [id])
+  usuarios           User[]
+  messages           Message[]
+  tramitacoesOrigem  Tramitacao[] @relation("OriginDept")
+  tramitacoesDestino Tramitacao[] @relation("DestDept")
+  servidores         Servidor[]
+  patrimonios        Patrimonio[]
+  createdAt          DateTime     @default(now())
+
+  updatedAt DateTime @updatedAt
+
+  @@map("departamentos")
+}
+
+model Message {
+  id       String @id @default(uuid())
+  content  String
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
+  scope MessageScope @default(DEPARTAMENTO)
+
+  orgaoId String?
+  orgao   Orgao?  @relation(fields: [orgaoId], references: [id])
+
+  departamentoId String?
+  departamento   Departamento? @relation(fields: [departamentoId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@map("messages")
+}
+
+model Protocolo {
+  id            String  @id @default(uuid())
+  numero        Int
+  ano           Int
+  codigoUnico   String  @unique // Ex: PROT-2026-0001
+  tipo          String // ENTRADA, SAIDA, INTERNO
+  assunto       String? // Extraído via IA
+  classificacao String? // Extraído via IA
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  orgaoId String?
+  orgao   Orgao?  @relation(fields: [orgaoId], references: [id])
+
+  proposituraId String?      @unique
+  propositura   Propositura? @relation(fields: [proposituraId], references: [id])
+
+  documentId String?   @unique
+  document   Document? @relation(fields: [documentId], references: [id])
+
+  arquivoId String?
+  arquivo   Arquivo? @relation(fields: [arquivoId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("protocolos")
+}
+
+model Document {
+  id        String     @id @default(uuid())
+  title     String
+  content   String?
+  type      String
+  status    String     @default("draft")
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  protocolo Protocolo?
+  arquivoId String?
+  arquivo   Arquivo?   @relation(fields: [arquivoId], references: [id])
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@map("documents")
+}
+
+model Propositura {
+  id            String          @id @default(uuid())
+  numero        Int
+  ano           Int
+  tipo          TipoPropositura @default(PL)
+  ementa        String
+  texto         String?
+  justificativa String?
+  autorId       String
+  autor         User            @relation(fields: [autorId], references: [id])
+  status        String          @default("PROTOCOLADO")
+
+  // Workflow Engine fields
+  faseAtual  FasePropositura  @default(PROTOCOLO)
+  regime     RegimeTramitacao @default(ORDINARIO)
+  urgente    Boolean          @default(false)
+  prazoFatal DateTime?
+
+  // Lifecycle dates
+  dataDeliberacao  DateTime? // Quando o Plenário autoriza o trâmite
+  data1aDiscussao  DateTime?
+  data2aDiscussao  DateTime?
+  dataRedacaoFinal DateTime?
+  dataSancao       DateTime?
+  dataPromulgacao  DateTime?
+  dataPublicacao   DateTime?
+
+  // AI-generated fields
+  sugestaoEmentaIA String? // Ementa sugerida pela IA
+  analiseIA        String? // Análise constitucional da IA
+  classificacaoIA  String? // Classificação automática
+
+  protocolo Protocolo?
+  vetoId    String?    @unique
+  veto      Veto?      @relation(fields: [vetoId], references: [id])
+
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  tramitacoes   Tramitacao[]
+  ordemDoDia    OrdemDoDia[]
+  votacoes      Votacao[]
+  emendas       Emenda[]
+  substitutivos Substitutivo[]
+  pareceres     ParecerComissao[]
+  discussoes    DiscussaoPlenaria[]
+  redacaoFinal  RedacaoFinal?
+  alertas       AlertaPrazo[]
+
+  @@map("proposituras")
+}
+
+// ============================================================
+// EMENDAS — Art. 170-171 do Regimento
+// ============================================================
+model Emenda {
+  id              String        @id @default(uuid())
+  proposituraId   String
+  propositura     Propositura   @relation(fields: [proposituraId], references: [id])
+  numero          Int
+  tipo            TipoEmenda
+  texto           String
+  justificativa   String?
+  autorId         String
+  fase            FaseDiscussao @default(PRIMEIRA) // Em qual discussão foi apresentada
+  status          StatusEmenda  @default(APRESENTADA)
+  parecerComissao String? // Parecer da comissão sobre a emenda
+  sugestaoIA      String? // Sugestão da IA sobre impacto
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  @@map("emendas")
+}
+
+// ============================================================
+// SUBSTITUTIVOS — Art. 172 do Regimento
+// ============================================================
+model Substitutivo {
+  id            String      @id @default(uuid())
+  proposituraId String
+  propositura   Propositura @relation(fields: [proposituraId], references: [id])
+  texto         String
+  justificativa String?
+  autorId       String
+  signatarios   Int         @default(0) // Deve ser >= 1/3 dos vereadores
+  status        String      @default("APRESENTADO") // APRESENTADO, APROVADO, REJEITADO
+  createdAt     DateTime    @default(now())
+
+  @@map("substitutivos")
+}
+
+// ============================================================
+// PARECERES — Art. 82 do Regimento
+// ============================================================
+model ParecerComissao {
+  id            String        @id @default(uuid())
+  proposituraId String
+  propositura   Propositura   @relation(fields: [proposituraId], references: [id])
+  comissaoId    String
+  comissao      Comissao      @relation(fields: [comissaoId], references: [id])
+  relatorId     String?
+  tipo          TipoParecer   @default(MERITO)
+  texto         String?
+  voto          VotoParecer   @default(PENDENTE)
+  prazoLimite   DateTime? // Prazo regimental (4 reuniões ordinário, 1 urgência)
+  dataEmissao   DateTime?
+  status        StatusParecer @default(AGUARDANDO_RELATOR)
+  sugestaoIA    String? // Sugestão de texto de parecer pela IA
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  @@map("pareceres_comissao")
+}
+
+// ============================================================
+// DISCUSSÕES PLENÁRIAS — Arts. 180-187 do Regimento
+// ============================================================
+model DiscussaoPlenaria {
+  id            String        @id @default(uuid())
+  proposituraId String
+  propositura   Propositura   @relation(fields: [proposituraId], references: [id])
+  sessaoId      String
+  fase          FaseDiscussao // PRIMEIRA ou SEGUNDA
+  resultado     String? // APROVADA, REJEITADA, ADIADA
+  observacoes   String?
+  dataDiscussao DateTime      @default(now())
+  sessao        Sessao        @relation(fields: [sessaoId], references: [id])
+
+  @@map("discussoes_plenarias")
+}
+
+// ============================================================
+// REDAÇÃO FINAL — Art. 207 do Regimento
+// ============================================================
+model RedacaoFinal {
+  id             String      @id @default(uuid())
+  proposituraId  String      @unique
+  propositura    Propositura @relation(fields: [proposituraId], references: [id])
+  comissaoId     String // CCJ
+  texto          String
+  aprovada       Boolean     @default(false)
+  dataElaboracao DateTime    @default(now())
+  sugestaoIA     String? // Sugestão de redação pela IA
+
+  @@map("redacoes_finais")
+}
+
+// ============================================================
+// VETOS — Arts. 223-227 do Regimento
+// ============================================================
+model Veto {
+  id              String        @id @default(uuid())
+  tipo            TipoVeto
+  razoes          String // Razões do veto pelo Prefeito
+  artigosVetados  String? // Artigos vetados (para veto parcial)
+  dataRecebimento DateTime      @default(now())
+  prazo30dias     DateTime // Prazo fatal para votação
+  resultado       ResultadoVeto @default(PENDENTE)
+  dataVotacao     DateTime?
+  propositura     Propositura?
+  sugestaoIA      String? // Análise da IA sobre o veto
+  createdAt       DateTime      @default(now())
+
+  @@map("vetos")
+}
+
+// ============================================================
+// ALERTAS DE PRAZO — Notificações automáticas
+// ============================================================
+model AlertaPrazo {
+  id             String       @id @default(uuid())
+  proposituraId  String?
+  propositura    Propositura? @relation(fields: [proposituraId], references: [id])
+  tipo           TipoAlerta
+  titulo         String
+  descricao      String
+  prazoLimite    DateTime
+  notificado     Boolean      @default(false)
+  vencido        Boolean      @default(false)
+  destinatarioId String? // User que deve receber
+  createdAt      DateTime     @default(now())
+
+  @@map("alertas_prazo")
+}
+
+// ============================================================
+// AUDIÊNCIAS PÚBLICAS — Arts. 93-94 do Regimento
+// ============================================================
+model AudienciaPublica {
+  id             String   @id @default(uuid())
+  comissaoId     String
+  comissao       Comissao @relation(fields: [comissaoId], references: [id])
+  tema           String
+  descricao      String?
+  data           DateTime
+  local          String?
+  ata            String?
+  convidados     String? // JSON array com nomes/entidades
+  status         String   @default("AGENDADA") // AGENDADA, REALIZADA, CANCELADA
+  sugestaoTemaIA String? // Sugestão de temas pela IA
+  createdAt      DateTime @default(now())
+
+  @@map("audiencias_publicas")
+}
+
+// ============================================================
+// LICENÇAS — Arts. 115-116 do Regimento
+// ============================================================
+model LicencaVereador {
+  id          String             @id @default(uuid())
+  vereadorId  String
+  vereador    SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  tipo        TipoLicenca
+  inicio      DateTime
+  fim         DateTime?
+  laudoMedico String? // Para licença saúde (3 médicos)
+  suplenteId  String? // Suplente convocado
+  status      String             @default("ATIVA") // ATIVA, ENCERRADA, CANCELADA
+  createdAt   DateTime           @default(now())
+
+  @@map("licencas_vereadores")
+}
+
+// ============================================================
+// HONRARIAS — Arts. 173-174 do Regimento
+// ============================================================
+model Honraria {
+  id                   String       @id @default(uuid())
+  tipo                 TipoHonraria
+  homenageadoNome      String
+  biografia            String?
+  certidaoAntecedentes String? // Obrigatório (Resolução 150)
+  anuenciaHomenageado  Boolean      @default(false) // Obrigatório
+  projetoNumero        Int?
+  projetoAno           Int?
+  vereadorPrincipalId  String?
+  area                 String? // Área da medalha (Medicina, Cultura, etc.)
+  status               String       @default("EM_ANALISE") // EM_ANALISE, APROVADO, ENTREGUE
+  dataEntrega          DateTime?
+  createdAt            DateTime     @default(now())
+
+  @@map("honrarias")
+}
+
+// ============================================================
+// TRIBUNA POPULAR — Art. 131 do Regimento
+// ============================================================
+model TribunaPopular {
+  id            String   @id @default(uuid())
+  sessaoId      String
+  entidade      String // Nome da entidade
+  orador        String // Nome do orador
+  tema          String
+  tempoMinutos  Int      @default(5)
+  dataInscricao DateTime @default(now())
+  status        String   @default("INSCRITO") // INSCRITO, REALIZADO, CANCELADO
+
+  @@map("tribuna_popular")
+}
+
+// ============================================================
+// MOÇÕES — Art. 169 do Regimento
+// ============================================================
+model Mocao {
+  id        String    @id @default(uuid())
+  tipo      TipoMocao
+  assunto   String
+  texto     String?
+  autorId   String
+  aprovada  Boolean?
+  sessaoId  String?
+  createdAt DateTime  @default(now())
+
+  @@map("mocoes")
+}
+
+// ============================================================
+// INDICAÇÕES DE ORÇAMENTO — Art. 160 do Regimento
+// ============================================================
+model IndicacaoOrcamento {
+  id            String   @id @default(uuid())
+  tipo          String   @default("VEREADOR") // VEREADOR, ENTIDADE
+  autorId       String?
+  entidade      String? // Se for de entidade
+  descricao     String
+  valorEstimado Decimal?
+  status        String   @default("APRESENTADA") // APRESENTADA, APROVADA, REJEITADA, ENCAMINHADA
+  exercicioAlvo Int // Ano do orçamento alvo
+  createdAt     DateTime @default(now())
+
+  @@map("indicacoes_orcamento")
+}
+
+// ============================================================
+// MINUTAS — Gestão de documentos oficiais
+// ============================================================
+model Minuta {
+  id            String              @id @default(uuid())
+  titulo        String
+  tipo          String // OFICIO, COMUNICACAO, ATO_MESA, PORTARIA
+  conteudo      String
+  autorId       String
+  status        StatusMinuta        @default(RASCUNHO)
+  aprovadorId   String?
+  dataAprovacao DateTime?
+  expedida      Boolean             @default(false)
+  dataExpedicao DateTime?
+  sugestaoIA    String? // Sugestão de texto pela IA
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+  assinaturas   AssinaturaDigital[]
+
+  @@map("minutas")
+}
+
+// ============================================================
+// ASSINATURAS DIGITAIS
+// ============================================================
+model AssinaturaDigital {
+  id                String   @id @default(uuid())
+  minutaId          String?
+  minuta            Minuta?  @relation(fields: [minutaId], references: [id])
+  documentoId       String?
+  assinanteId       String
+  hashDocumento     String // SHA-256 do documento
+  dataCriacao       DateTime @default(now())
+  valida            Boolean  @default(true)
+  codigoVerificacao String   @unique // Código QR de validação
+
+  @@map("assinaturas_digitais")
+}
+
+model Tramitacao {
+  id            String      @id @default(uuid())
+  proposituraId String
+  propositura   Propositura @relation(fields: [proposituraId], references: [id])
+
+  origemId  String
+  origem    Departamento @relation("OriginDept", fields: [origemId], references: [id])
+  destinoId String
+  destino   Departamento @relation("DestDept", fields: [destinoId], references: [id])
+
+  remetenteId    String
+  remetente      User    @relation("SenderUser", fields: [remetenteId], references: [id])
+  destinatarioId String?
+  destinatario   User?   @relation("ReceiverUser", fields: [destinatarioId], references: [id])
+
+  dataEnvio       DateTime  @default(now())
+  dataRecebimento DateTime?
+  dataSaida       DateTime?
+
+  duracaoSegundos Int?
+
+  status     String
+  parecer    String?
+  observacao String?
+
+  @@map("tramitacoes")
+}
+
+model Legislatura {
+  id         String            @id @default(uuid())
+  numero     Int               @unique
+  inicio     DateTime
+  fim        DateTime
+  vereadores MandatoVereador[]
+  mesas      MesaDiretora[]
+  sessoes    Sessao[]
+
+  @@map("legislaturas")
+}
+
+model Partido {
+  id         String               @id @default(uuid())
+  nome       String
+  sigla      String               @unique
+  logo       String?
+  vereadores SimplifiedVereador[]
+  bancadas   Bancada[]
+
+  @@map("partidos")
+}
+
+model MandatoVereador {
+  id            String             @id @default(uuid())
+  vereadorId    String
+  vereador      SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  legislaturaId String
+  legislatura   Legislatura        @relation(fields: [legislaturaId], references: [id])
+  inicio        DateTime
+  fim           DateTime?
+  status        String // ATIVO, LICENCIADO, ENCERRADO
+
+  @@map("mandatos_vereador")
+}
+
+model MesaDiretora {
+  id            String       @id @default(uuid())
+  legislaturaId String
+  legislatura   Legislatura  @relation(fields: [legislaturaId], references: [id])
+  inicio        DateTime
+  fim           DateTime
+  membros       MembroMesa[]
+  ativa         Boolean      @default(true)
+
+  @@map("mesas_diretoras")
+}
+
+model MembroMesa {
+  id         String             @id @default(uuid())
+  mesaId     String
+  mesa       MesaDiretora       @relation(fields: [mesaId], references: [id])
+  vereadorId String
+  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  cargo      CargoMesa
+
+  @@map("membros_mesa")
+}
+
+model Comissao {
+  id              String             @id @default(uuid())
+  nome            String
+  sigla           String             @unique
+  descricao       String?
+  tipo            String // PERMANENTE, ESPECIAL, CPI, PROCESSANTE, MISTA, REPRESENTATIVA
+  competencias    String? // JSON com competências regimentais
+  artigoRegimento String? // Artigo do Regimento que a define
+  ativa           Boolean            @default(true)
+  membros         MembroComissao[]
+  pareceres       ParecerComissao[]
+  audiencias      AudienciaPublica[]
+
+  @@map("comissoes")
+}
+
+model MembroComissao {
+  id         String             @id @default(uuid())
+  comissaoId String
+  comissao   Comissao           @relation(fields: [comissaoId], references: [id])
+  vereadorId String
+  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  cargo      String // PRESIDENTE, VICE_PRESIDENTE, RELATOR, TITULAR, SUPLENTE
+  inicio     DateTime           @default(now())
+  fim        DateTime?
+
+  @@map("membros_comissao")
+}
+
+model Bancada {
+  id            String              @id @default(uuid())
+  nome          String
+  partidoId     String?
+  partido       Partido?            @relation(fields: [partidoId], references: [id])
+  liderId       String?
+  lider         SimplifiedVereador? @relation("LiderBancada", fields: [liderId], references: [id])
+  viceLiderId   String?
+  viceLider     SimplifiedVereador? @relation("ViceLiderBancada", fields: [viceLiderId], references: [id])
+  legislaturaId String
+
+  @@map("bancadas")
+}
+
+model Sessao {
+  id            String              @id @default(uuid())
+  legislaturaId String
+  legislatura   Legislatura         @relation(fields: [legislaturaId], references: [id])
+  tipo          String // ORDINARIA, EXTRAORDINARIA, SOLENE, PREPARATORIA, ESPECIAL
+  data          DateTime
+  status        String              @default("AGENDADA")
+  ata           String?
+  ataGeradaIA   String? // Ata gerada automaticamente pela IA
+  videoUrl      String?
+  presencas     Presenca[]
+  inscritos     InscricaoOrador[]
+  ordemDoDia    OrdemDoDia[]
+  votacoes      Votacao[]
+  discussoes    DiscussaoPlenaria[]
+
+  @@map("sessoes")
+}
+
+model Presenca {
+  id              String             @id @default(uuid())
+  sessaoId        String
+  sessao          Sessao             @relation(fields: [sessaoId], references: [id])
+  vereadorId      String
+  vereador        SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  momento         DateTime           @default(now())
+  status          String // PRESENTE, FALTA, FALTA_JUSTIFICADA, MISSAO_REPRESENTACAO
+  impactoSubsidio Boolean            @default(false) // Se a falta gera desconto
+  descontoValor   Decimal? // Valor do desconto (1/12 do subsídio)
+
+  @@map("presencas")
+}
+
+model InscricaoOrador {
+  id         String             @id @default(uuid())
+  sessaoId   String
+  sessao     Sessao             @relation(fields: [sessaoId], references: [id])
+  vereadorId String
+  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  tipo       String // PEQUENO_EXPEDIENTE, GRANDE_EXPEDIENTE, COMUNICACAO_PARLAMENTAR, TRIBUNA_POPULAR
+  ordem      Int
+  tempoGasto Int                @default(0) // Segundos
+
+  @@map("inscricoes_orador")
+}
+
+model OrdemDoDia {
+  id            String             @id @default(uuid())
+  sessaoId      String
+  sessao        Sessao             @relation(fields: [sessaoId], references: [id])
+  proposituraId String
+  propositura   Propositura        @relation(fields: [proposituraId], references: [id])
+  ordem         Int
+  prioridade    PrioridadeOrdemDia @default(NORMAL)
+  status        String // PENDENTE, EM_DISCUSSAO, VOTADO, ADIADO, RETIRADO
+
+  @@map("ordens_do_dia")
+}
+
+model Votacao {
+  id            String       @id @default(uuid())
+  sessaoId      String
+  sessao        Sessao       @relation(fields: [sessaoId], references: [id])
+  proposituraId String?
+  propositura   Propositura? @relation(fields: [proposituraId], references: [id])
+  tipo          String // SIMBOLICA, NOMINAL, SECRETA
+  objetivo      String?
+  quorumMinimo  Int
+  resultado     String? // APROVADO, REJEITADO
+  votos         Voto[]
+
+  @@map("votacoes")
+}
+
+model Voto {
+  id         String             @id @default(uuid())
+  votacaoId  String
+  votacao    Votacao            @relation(fields: [votacaoId], references: [id])
+  vereadorId String
+  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  escolha    String // FAVORAVEL, CONTRARIO, ABSTENCAO, AUSENTE
+
+  @@map("votos")
+}
+
+model Orcamento {
+  id      String               @id @default(uuid())
+  ano     Int
+  tipo    String // PPA, LDO, LOA
+  status  String // ELABORACAO, EM_TRAMITACAO, APROVADO, EXECUTADO
+  emendas EmendaOrcamentaria[]
+
+  @@map("orcamentos")
+}
+
+model EmendaOrcamentaria {
+  id          String             @id @default(uuid())
+  orcamentoId String
+  orcamento   Orcamento          @relation(fields: [orcamentoId], references: [id])
+  autorId     String
+  autor       SimplifiedVereador @relation(fields: [autorId], references: [id])
+  valor       Decimal
+  descricao   String
+
+  @@map("emendas_orcamentarias")
+}
+
+model Publicacao {
+  id            String   @id @default(uuid())
+  tipo          String // E_DOLM, PORTAL, REDE_SOCIAL
+  titulo        String
+  conteudo      String
+  data          DateTime @default(now())
+  autenticidade String   @unique
+  url           String?
+
+  @@map("publicacoes")
+}
+
+model Arquivo {
+  id          String      @id @default(uuid())
+  codigo      String      @unique
+  localizacao String
+  status      String // CORRENTE, INTERMEDIARIO, PERMANENTE
+  protocolos  Protocolo[]
+  documentos  Document[]
+
+  @@map("arquivos")
+}
+
+model Ouvidoria {
+  id           String    @id @default(uuid())
+  protocolo    String    @unique
+  tipo         String // RECLAMACAO, SUGESTAO, ELOGIO, DENUNCIA
+  assunto      String
+  descricao    String
+  manifestante String?
+  email        String?
+  status       String    @default("ABERTO")
+  dataAbertura DateTime  @default(now())
+  dataResposta DateTime?
+  resposta     String?
+  anexo        String?
+
+  @@map("ouvidoria")
+}
+
+model Servidor {
+  id             String       @id @default(uuid())
+  nome           String
+  matricula      String       @unique
+  cargo          String
+  departamentoId String
+  departamento   Departamento @relation(fields: [departamentoId], references: [id])
+  salario        Decimal
+  dataAdmissao   DateTime
+  status         String // ATIVO, AFASTADO, EXONERADO
+
+  @@map("servidores")
+}
+
+model Patrimonio {
+  id            String       @id @default(uuid())
+  tombo         String       @unique
+  descricao     String
+  tipo          String
+  valor         Decimal
+  dataAquisicao DateTime
+  estado        String
+  localizacaoId String
+  localizacao   Departamento @relation(fields: [localizacaoId], references: [id])
+
+  @@map("patrimonios")
+}
+
+model ProcessoCorregedoria {
+  id             String   @id @default(uuid())
+  numero         String   @unique
+  tipo           String // SINDICANCIA, PAD, INVESTIGACAO_ETICA, DECORO_PARLAMENTAR
+  assunto        String
+  envolvidoId    String?
+  instauracao    DateTime @default(now())
+  prazoConclusao DateTime
+  status         String // EM_CURSO, SUSPENSO, CONCLUIDO, ARQUIVADO
+  resultado      String?
+
+  @@map("corregedoria_processos")
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum Role {
+  USER
+  ADMIN
+  MODERATOR
+}
+
+enum MessageScope {
+  DEPARTAMENTO
+  ORGAO
+  GLOBAL
+}
+
+enum CargoMesa {
+  PRESIDENTE
+  VICE_PRESIDENTE_1
+  VICE_PRESIDENTE_2
+  VICE_PRESIDENTE_3
+  SECRETARIO_GERAL
+  SECRETARIO_1
+  SECRETARIO_2
+  SECRETARIO_3
+  CORREGEDOR
+  OUVIDOR_GERAL
+}
+
+enum TipoPropositura {
+  PL // Projeto de Lei
+  PLC // Projeto de Lei Complementar
+  PR // Projeto de Resolução
+  PDL // Projeto de Decreto Legislativo
+  EMENDA_LOMAN // Emenda à Lei Orgânica
+  INDICACAO
+  REQUERIMENTO
+  MOCAO
+}
+
+enum FasePropositura {
+  PROTOCOLO
+  DELIBERACAO // Plenário autoriza trâmite
+  COMISSAO_CCJ // Na CCJ para constitucionalidade
+  COMISSAO_MERITO // Nas comissões de mérito
+  COMISSAO_FINANCAS // Na Comissão de Finanças
+  PRIMEIRA_DISCUSSAO
+  EMENDAS_COMISSAO // Emendas voltaram às comissões
+  SEGUNDA_DISCUSSAO
+  REDACAO_FINAL
+  ENVIADO_PREFEITO
+  SANCIONADO
+  VETADO
+  VETO_EM_VOTACAO
+  PROMULGADO
+  PUBLICADO
+  ARQUIVADO
+}
+
+enum RegimeTramitacao {
+  ORDINARIO // Padrão: relator 4 reuniões, comissão 6
+  URGENCIA // Reduzido: relator 1 reunião, comissão 2
+  PRAZO_FATAL // Do Executivo (30 dias)
+}
+
+enum TipoEmenda {
+  SUPRESSIVA // Remove artigo/parágrafo/inciso
+  SUBSTITUTIVA // Substitui parte do texto
+  ADITIVA // Acrescenta novo dispositivo
+  MODIFICATIVA // Altera redação sem mudar substância
+}
+
+enum StatusEmenda {
+  APRESENTADA
+  EM_ANALISE_COMISSAO
+  APROVADA
+  REJEITADA
+}
+
+enum TipoParecer {
+  CONSTITUCIONALIDADE // CCJ
+  MERITO // Comissão temática
+  FINANCEIRO // Comissão de Finanças
+  REDACAO_FINAL // Redação final pela CCJ
+}
+
+enum VotoParecer {
+  PENDENTE
+  FAVORAVEL
+  FAVORAVEL_COM_EMENDAS
+  CONTRARIO
+  PELA_INCOMPETENCIA
+}
+
+enum StatusParecer {
+  AGUARDANDO_RELATOR
+  COM_RELATOR
+  PARECER_EMITIDO
+  APROVADO_COMISSAO
+  REJEITADO_COMISSAO
+  PRAZO_VENCIDO
+}
+
+enum FaseDiscussao {
+  PRIMEIRA
+  SEGUNDA
+}
+
+enum TipoVeto {
+  TOTAL
+  PARCIAL
+}
+
+enum ResultadoVeto {
+  PENDENTE
+  MANTIDO // Plenário manteve o veto
+  REJEITADO // Plenário rejeitou o veto (maioria absoluta)
+}
+
+enum TipoAlerta {
+  PRAZO_COMISSAO // Prazo do relator/comissão vencendo
+  PRAZO_VETO // 30 dias para votar veto
+  PRAZO_PREFEITO // 15 dias para sanção
+  PRAZO_URGENCIA // Prazo do regime de urgência
+  PRAZO_PROMULGACAO // 48h para promulgação
+  PRAZO_PUBLICACAO
+}
+
+enum TipoLicenca {
+  SAUDE // Art. 115 - laudo de 3 médicos
+  INTERESSE_PARTICULAR // Art. 115 §1 - sem subsídio
+  MATERNIDADE
+  PATERNIDADE
+}
+
+enum TipoHonraria {
+  CIDADAO_BENEMERITO // Art. 173 I
+  MERITO_CIDADE_MANAUS // Art. 173 II
+  CIDADAO_DE_MANAUS // Art. 173 III - não natural
+  MEDALHA_OURO // Art. 173 IV - 10+ anos
+  MEDALHA_ADRIANO_JORGE // Art. 173 V
+  MEDALHA_PAULO_NASSER // Art. 173 VI - ex-vereadores
+}
+
+enum TipoMocao {
+  SOLIDARIEDADE
+  PARABENIZACAO
+  PROTESTO
+  REPUDIO
+  DESAGRAVO
+}
+
+enum PrioridadeOrdemDia {
+  URGENCIA // Primeiro: projetos em regime de urgência
+  VETO // Segundo: deliberação de vetos
+  PROJETO_LEI // Terceiro: PLs, PRs, PDLs
+  PARECER // Quarto: pareceres de comissão
+  REQUERIMENTO // Quinto: requerimentos
+  INDICACAO // Sexto: indicações e moções
+  NORMAL // Padrão
+}
+
+enum StatusMinuta {
+  RASCUNHO
+  AGUARDANDO_APROVACAO
+  APROVADA
+  REJEITADA
+  EXPEDIDA
+}

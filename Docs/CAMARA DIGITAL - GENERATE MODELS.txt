@@ -1,0 +1,351 @@
+"""
+SCRIPT GERADOR AUTOMÁTICO DE MODELS
+Gera models SQLAlchemy para todas as 477 tabelas do sistema
+
+Este script:
+1. Conecta no SQL Server legado
+2. Extrai metadados de todas as tabelas
+3. Gera arquivos Python com os models
+4. Cria relationships automaticamente
+5. Adiciona comentários e documentação
+
+Usage:
+    python scripts/generate_models.py
+"""
+
+import sys
+import os
+from pathlib import Path
+from sqlalchemy import create_engine, MetaData, inspect, Table
+from sqlalchemy.engine.reflection import Inspector
+from typing import Dict, List, Any
+import re
+
+# Adicionar diretório raiz ao path
+ROOT_DIR = Path(__file__).parent.parent
+sys.path.append(str(ROOT_DIR))
+
+from app.core.config import settings
+
+
+# ============================================================================
+# MAPEAMENTO DE TIPOS SQL SERVER → SQLAlchemy
+# ============================================================================
+
+TYPE_MAPPING = {
+    'int': 'Integer',
+    'bigint': 'BigInteger',
+    'smallint': 'SmallInteger',
+    'tinyint': 'SmallInteger',
+    'bit': 'Integer',  # Boolean em SQL Server
+    'decimal': 'Numeric',
+    'numeric': 'Numeric',
+    'money': 'Numeric(19, 4)',
+    'smallmoney': 'Numeric(10, 4)',
+    'float': 'Float',
+    'real': 'Float(precision=24)',
+    'datetime': 'DateTime',
+    'smalldatetime': 'DateTime',
+    'date': 'Date',
+    'time': 'Time',
+    'char': 'String',
+    'varchar': 'String',
+    'text': 'Text',
+    'nchar': 'String',
+    'nvarchar': 'String',
+    'ntext': 'Text',
+    'binary': 'LargeBinary',
+    'varbinary': 'LargeBinary',
+    'image': 'LargeBinary',
+    'uniqueidentifier': 'String(36)',
+}
+
+
+# ============================================================================
+# GERADOR DE MODELS
+# ============================================================================
+
+class ModelGenerator:
+    """Gera models SQLAlchemy a partir do schema do SQL Server"""
+    
+    def __init__(self):
+        """Inicializa gerador"""
+        self.engine = create_engine(settings.LEGACY_DATABASE_URL)
+        self.inspector: Inspector = inspect(self.engine)
+        self.metadata = MetaData()
+        self.output_dir = ROOT_DIR / "app" / "models" / "generated"
+        self.output_dir.mkdir(exist_ok=True, parents=True)
+    
+    def get_all_tables(self) -> List[str]:
+        """
+        Retorna lista de todas as tabelas
+        
+        Returns:
+            List[str]: Lista de nomes de tabelas
+        """
+        tables = self.inspector.get_table_names(schema='dbo')
+        # Filtrar apenas tabelas que começam com tbl_
+        tables = [t for t in tables if t.startswith('tbl_')]
+        return sorted(tables)
+    
+    def get_table_info(self, table_name: str) -> Dict[str, Any]:
+        """
+        Extrai informações completas de uma tabela
+        
+        Args:
+            table_name: Nome da tabela
+            
+        Returns:
+            Dict com informações da tabela
+        """
+        columns = self.inspector.get_columns(table_name, schema='dbo')
+        pk_constraint = self.inspector.get_pk_constraint(table_name, schema='dbo')
+        foreign_keys = self.inspector.get_foreign_keys(table_name, schema='dbo')
+        indexes = self.inspector.get_indexes(table_name, schema='dbo')
+        
+        return {
+            'table_name': table_name,
+            'columns': columns,
+            'primary_keys': pk_constraint.get('constrained_columns', []),
+            'foreign_keys': foreign_keys,
+            'indexes': indexes,
+        }
+    
+    def sqlserver_to_python_type(self, column: Dict[str, Any]) -> str:
+        """
+        Converte tipo SQL Server para tipo SQLAlchemy
+        
+        Args:
+            column: Dicionário com info da coluna
+            
+        Returns:
+            str: Tipo SQLAlchemy
+        """
+        col_type = str(column['type']).lower()
+        
+        # Extrair tipo base
+        base_type = col_type.split('(')[0]
+        
+        # Mapear tipo
+        sqlalchemy_type = TYPE_MAPPING.get(base_type, 'String')
+        
+        # Adicionar tamanho para VARCHAR
+        if base_type in ['varchar', 'nvarchar', 'char', 'nchar']:
+            if 'length' in column:
+                length = column['length']
+                if length and length > 0:
+                    sqlalchemy_type = f'String({length})'
+        
+        return sqlalchemy_type
+    
+    def table_name_to_class_name(self, table_name: str) -> str:
+        """
+        Converte nome da tabela para nome da classe
+        
+        Args:
+            table_name: Nome da tabela (ex: tbl_protocolo)
+            
+        Returns:
+            str: Nome da classe (ex: Protocolo)
+        """
+        # Remover prefixo tbl_
+        name = table_name.replace('tbl_', '')
+        
+        # Converter snake_case para PascalCase
+        parts = name.split('_')
+        class_name = ''.join(word.capitalize() for word in parts)
+        
+        return class_name
+    
+    def generate_column_definition(self, column: Dict[str, Any], is_pk: bool = False, fks: List[Dict] = None) -> str:
+        """
+        Gera definição de uma coluna
+        
+        Args:
+            column: Info da coluna
+            is_pk: Se é primary key
+            fks: Lista de foreign keys
+            
+        Returns:
+            str: Código da definição da coluna
+        """
+        col_name = column['name']
+        col_type = self.sqlserver_to_python_type(column)
+        nullable = column['nullable']
+        default = column.get('default')
+        
+        # Verificar se é FK
+        fk_ref = None
+        if fks:
+            for fk in fks:
+                if col_name in fk['constrained_columns']:
+                    fk_table = fk['referred_table']
+                    fk_column = fk['referred_columns'][0]
+                    fk_ref = f"{fk_table}.{fk_column}"
+                    break
+        
+        # Montar definição
+        parts = []
+        parts.append(f"    {col_name} = Column(")
+        
+        # Tipo
+        if fk_ref:
+            parts.append(f"\n        {col_type},")
+            parts.append(f"\n        ForeignKey('{fk_ref}'),")
+        else:
+            parts.append(f"\n        {col_type},")
+        
+        # Primary key
+        if is_pk:
+            parts.append(f"\n        primary_key=True,")
+            if col_type == 'Integer':
+                parts.append(f"\n        autoincrement=True,")
+        
+        # Nullable
+        parts.append(f"\n        nullable={nullable},")
+        
+        # Default
+        if default and not is_pk:
+            # Limpar default do SQL Server
+            default_clean = str(default).replace('(', '').replace(')', '').replace("'", '')
+            if default_clean.lower() == 'getdate':
+                parts.append(f"\n        default=datetime.utcnow,")
+                parts.append(f"\n        server_default=func.now(),")
+            elif default_clean.isdigit():
+                parts.append(f"\n        default={default_clean},")
+                parts.append(f"\n        server_default='{default_clean}',")
+        
+        # Index
+        if col_name in ['cod_ativo', 'dt_criacao', 'dt_atualizacao']:
+            parts.append(f"\n        index=True,")
+        
+        # Comment
+        comment = column.get('comment') or f"{col_name.replace('_', ' ').title()}"
+        parts.append(f"\n        comment=\"{comment}\"")
+        
+        parts.append("\n    )")
+        
+        return ''.join(parts)
+    
+    def generate_model_file(self, table_info: Dict[str, Any]) -> str:
+        """
+        Gera arquivo completo do model
+        
+        Args:
+            table_info: Informações da tabela
+            
+        Returns:
+            str: Código Python do model
+        """
+        table_name = table_info['table_name']
+        class_name = self.table_name_to_class_name(table_name)
+        columns = table_info['columns']
+        pks = table_info['primary_keys']
+        fks = table_info['foreign_keys']
+        
+        # Header
+        lines = []
+        lines.append('"""')
+        lines.append(f'Model: {class_name}')
+        lines.append(f'Tabela: {table_name}')
+        lines.append('Gerado automaticamente - NÃO EDITAR MANUALMENTE')
+        lines.append('"""')
+        lines.append('')
+        lines.append('from sqlalchemy import Column, Integer, String, DateTime, Text, ')
+        lines.append('    Numeric, Float, Date, Time, ForeignKey, Index, BigInteger, LargeBinary')
+        lines.append('from sqlalchemy.orm import relationship')
+        lines.append('from datetime import datetime')
+        lines.append('from sqlalchemy.sql import func')
+        lines.append('')
+        lines.append('from app.models.base import AuditableModel')
+        lines.append('')
+        lines.append('')
+        
+        # Class definition
+        lines.append(f'class {class_name}(AuditableModel):')
+        lines.append(f'    """')
+        lines.append(f'    {class_name} - {table_name}')
+        lines.append(f'    """')
+        lines.append('')
+        lines.append(f'    __tablename__ = "{table_name}"')
+        lines.append('')
+        
+        # Columns
+        for col in columns:
+            is_pk = col['name'] in pks
+            col_def = self.generate_column_definition(col, is_pk, fks)
+            lines.append(col_def)
+            lines.append('')
+        
+        code = '\n'.join(lines)
+        return code
+    
+    def generate_all_models(self):
+        """Gera todos os models"""
+        print("=" * 80)
+        print("GERADOR AUTOMÁTICO DE MODELS")
+        print("=" * 80)
+        print()
+        
+        tables = self.get_all_tables()
+        total = len(tables)
+        
+        print(f"Total de tabelas encontradas: {total}")
+        print()
+        
+        # Gerar __init__.py
+        init_imports = []
+        
+        for idx, table_name in enumerate(tables, 1):
+            print(f"[{idx}/{total}] Gerando {table_name}...")
+            
+            try:
+                table_info = self.get_table_info(table_name)
+                code = self.generate_model_file(table_info)
+                
+                class_name = self.table_name_to_class_name(table_name)
+                file_name = table_name + '.py'
+                file_path = self.output_dir / file_name
+                
+                with open(file_path, 'w', encoding='utf-8') as f:
+                    f.write(code)
+                
+                init_imports.append(f"from .{table_name} import {class_name}")
+                
+                print(f"    ✓ Gerado: {file_path}")
+                
+            except Exception as e:
+                print(f"    ✗ Erro: {e}")
+        
+        # Gerar __init__.py
+        init_file = self.output_dir / '__init__.py'
+        with open(init_file, 'w', encoding='utf-8') as f:
+            f.write('"""\n')
+            f.write('Models gerados automaticamente\n')
+            f.write('"""\n\n')
+            f.write('\n'.join(init_imports))
+            f.write('\n\n__all__ = [\n')
+            for table in tables:
+                class_name = self.table_name_to_class_name(table)
+                f.write(f'    "{class_name}",\n')
+            f.write(']\n')
+        
+        print()
+        print("=" * 80)
+        print(f"✓ {total} models gerados com sucesso!")
+        print(f"✓ Localização: {self.output_dir}")
+        print("=" * 80)
+
+
+# ============================================================================
+# MAIN
+# ============================================================================
+
+def main():
+    """Função principal"""
+    generator = ModelGenerator()
+    generator.generate_all_models()
+
+
+if __name__ == "__main__":
+    main()

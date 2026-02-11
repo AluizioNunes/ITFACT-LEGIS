@@ -1,0 +1,537 @@
+# 🗄️ DIAGRAMA ENTIDADE-RELACIONAMENTO DO BANCO DE DADOS
+
+## Sistema ITFACT-LEGIS - Câmara Municipal de Manaus
+
+**Total de Tabelas:** 477  
+**Registros Totais:** ~15,7 milhões  
+**Tabelas Principais:** 20 (com 99% dos registros)  
+
+---
+
+## 📊 DIAGRAMA PRINCIPAL (Top 20 Tabelas + Relacionamentos Chave)
+
+```mermaid
+erDiagram
+    %% ========================================================================
+    %% TABELA PRINCIPAL: PROTOCOLO (636.972 registros)
+    %% ========================================================================
+    
+    PROTOCOLO {
+        int cod_protocolo PK "Código único"
+        varchar txt_numero UK "Número NUP (21 chars)"
+        int cod_protocolo_tipo FK "Tipo protocolo"
+        int cod_assunto FK "Assunto principal"
+        int cod_situacao FK "Situação atual"
+        int cod_orgao_atual FK "Órgão atual"
+        datetime dt_protocolo "Data oficial"
+        datetime dt_abertura "Data abertura"
+        datetime dt_prazo_resposta "Prazo resposta"
+        text txt_resumo "Resumo"
+        text txt_texto "Texto completo"
+        int cod_ativo "Ativo/Inativo"
+    }
+    
+    %% ========================================================================
+    %% DOCUMENTOS E ARQUIVOS (1.878.542 arquivos)
+    %% ========================================================================
+    
+    PROTOCOLO_DOCUMENTO {
+        int cod_protocolo_documento PK
+        int cod_protocolo FK "Protocolo"
+        varchar txt_arquivo "Nome arquivo"
+        varchar txt_caminho "Caminho"
+        varchar txt_hash "Hash MD5"
+        bigint num_tamanho "Tamanho bytes"
+        datetime dt_inclusao "Data inclusão"
+    }
+    
+    PROTOCOLO_ARQUIVO {
+        int cod_protocolo_arquivo PK
+        int cod_protocolo FK
+        varchar txt_nome_arquivo "Nome original"
+        varchar txt_nome_arquivo_fisico "Nome físico"
+        varchar txt_extensao "Extensão"
+        varchar txt_caminho_fisico "Caminho"
+        datetime dt_upload "Data upload"
+    }
+    
+    %% ========================================================================
+    %% TRAMITAÇÃO (2.672.565 movimentos)
+    %% ========================================================================
+    
+    PROTOCOLO_MOVIMENTO {
+        int cod_protocolo_movimento PK
+        int cod_protocolo FK
+        int cod_orgao_origem FK
+        int cod_orgao_destino FK
+        int cod_usuario FK
+        datetime dt_movimento "Data movimentação"
+        text txt_observacao "Observação"
+        int cod_tipo_movimento FK
+        int cod_situacao FK
+    }
+    
+    PROTOCOLO_DISTRIBUICAO {
+        int cod_protocolo_distribuicao PK
+        int cod_protocolo FK
+        int cod_orgao_destino FK
+        int cod_usuario_distribuidor FK
+        datetime dt_distribuicao
+        datetime dt_recebimento
+        int cod_recebido "Recebido?"
+    }
+    
+    %% ========================================================================
+    %% ASSINATURAS DIGITAIS (654.443 assinaturas)
+    %% ========================================================================
+    
+    DOCUMENTO_ASSINATURA {
+        int cod_documento_assinatura PK
+        int cod_protocolo_documento FK
+        varchar txt_arquivo_p7s "Arquivo PKCS#7"
+        text txt_certificado_digital "Certificado"
+        datetime dt_assinatura "Data/hora"
+        varchar txt_cpf_assinante "CPF"
+        varchar txt_nome_assinante "Nome"
+        int cod_valido "Assinatura válida?"
+    }
+    
+    PROTOCOLO_ASSINATURA {
+        int cod_protocolo_assinatura PK
+        int cod_protocolo FK
+        int cod_usuario FK
+        datetime dt_assinatura
+        varchar txt_hash_assinatura
+        int cod_tipo_assinatura FK
+    }
+    
+    %% ========================================================================
+    %% PROPOSITURAS LEGISLATIVAS (309.301 tramitações)
+    %% ========================================================================
+    
+    PROPOSITURA_LEGISLATIVA {
+        int cod_propositura_legislativa PK
+        int num_propositura UK "Número único"
+        int cod_tipo_propositura FK
+        int cod_parlamentar_autor FK
+        datetime dt_apresentacao
+        varchar txt_ementa "Ementa"
+        text txt_justificativa
+        int cod_situacao FK
+        int cod_ativo
+    }
+    
+    PROPOSITURA_LEGISLATIVA_TRAMITACAO {
+        int cod_tramitacao PK
+        int cod_propositura_legislativa FK
+        int cod_orgao_origem FK
+        int cod_orgao_destino FK
+        datetime dt_tramitacao
+        text txt_despacho
+        int cod_fase FK
+    }
+    
+    PROPOSITURA_LEGISLATIVA_DOCUMENTO {
+        int cod_documento PK
+        int cod_propositura_legislativa FK
+        varchar txt_arquivo "Nome arquivo"
+        varchar txt_caminho "Caminho"
+        guid guid_arquivo "GUID único"
+        datetime dt_inclusao
+    }
+    
+    %% ========================================================================
+    %% MINUTAS (42.495 minutas)
+    %% ========================================================================
+    
+    MINUTA_LEGISLATIVA {
+        int cod_minuta_legislativa PK
+        guid guid_minuta UK "GUID único"
+        int cod_tipo_minuta FK
+        varchar txt_arquivo_original
+        varchar txt_arquivo_fisico
+        varchar txt_caminho
+        datetime dt_criacao
+        int cod_usuario_criacao FK
+        int cod_status FK
+    }
+    
+    %% ========================================================================
+    %% INTERESSADOS (640.751 registros)
+    %% ========================================================================
+    
+    PROTOCOLO_INTERESSADO {
+        int cod_protocolo_interessado PK
+        int cod_protocolo FK
+        int cod_pessoa FK "Pessoa física/jurídica"
+        int cod_tipo_interessado FK
+        varchar txt_nome "Nome"
+        varchar txt_cpf_cnpj "CPF/CNPJ"
+        int cod_polo "Polo (ativo/passivo)"
+    }
+    
+    PESSOA {
+        int cod_pessoa PK
+        varchar txt_nome
+        varchar txt_cpf_cnpj UK
+        varchar txt_email
+        varchar txt_telefone
+        int cod_tipo_pessoa "1=Física, 2=Jurídica"
+    }
+    
+    %% ========================================================================
+    %% USUÁRIOS E SEGURANÇA (211.849 perfis)
+    %% ========================================================================
+    
+    USUARIO {
+        int cod_usuario PK
+        varchar txt_login UK
+        varchar txt_senha_hash "Bcrypt hash"
+        varchar txt_nome
+        varchar txt_email UK
+        int cod_orgao FK
+        datetime dt_ultimo_acesso
+        int cod_ativo
+    }
+    
+    SEG_USUARIO_PERFIL_FUNCAO {
+        int cod_usuario_perfil_funcao PK
+        int cod_usuario FK
+        int cod_perfil FK
+        int cod_funcao FK
+        datetime dt_atribuicao
+    }
+    
+    SEG_PERFIL {
+        int cod_perfil PK
+        varchar txt_nome
+        varchar txt_descricao
+        int cod_ativo
+    }
+    
+    SEG_FUNCAO {
+        int cod_funcao PK
+        varchar txt_nome
+        varchar txt_codigo UK
+        varchar txt_descricao
+        varchar txt_modulo
+    }
+    
+    %% ========================================================================
+    %% ESTRUTURA ORGANIZACIONAL
+    %% ========================================================================
+    
+    ORGAO {
+        int cod_orgao PK
+        varchar txt_nome
+        varchar txt_sigla UK
+        int cod_orgao_pai FK "Hierarquia"
+        int cod_tipo_orgao FK
+        int cod_ativo
+    }
+    
+    %% ========================================================================
+    %% CLASSIFICAÇÃO
+    %% ========================================================================
+    
+    ASSUNTO {
+        int cod_assunto PK
+        varchar txt_descricao
+        int cod_assunto_pai FK "Hierárquico"
+        varchar txt_codigo
+        int cod_ativo
+    }
+    
+    SITUACAO {
+        int cod_situacao PK
+        varchar txt_descricao
+        varchar txt_codigo UK
+        int cod_tipo "Protocolo/Minuta/etc"
+    }
+    
+    PROTOCOLO_TIPO {
+        int cod_protocolo_tipo PK
+        varchar txt_descricao
+        varchar txt_sigla
+        int cod_ativo
+    }
+    
+    DOCUMENTO_TIPO {
+        int cod_documento_tipo PK
+        varchar txt_descricao
+        varchar txt_sigla
+        int cod_modelo FK "Modelo padrão"
+    }
+    
+    %% ========================================================================
+    %% RELACIONAMENTOS PRINCIPAIS
+    %% ========================================================================
+    
+    %% Protocolo → Documentos
+    PROTOCOLO ||--o{ PROTOCOLO_DOCUMENTO : "possui"
+    PROTOCOLO ||--o{ PROTOCOLO_ARQUIVO : "possui"
+    
+    %% Protocolo → Tramitação
+    PROTOCOLO ||--o{ PROTOCOLO_MOVIMENTO : "tramita"
+    PROTOCOLO ||--o{ PROTOCOLO_DISTRIBUICAO : "distribui"
+    
+    %% Protocolo → Assinaturas
+    PROTOCOLO ||--o{ PROTOCOLO_ASSINATURA : "assinado por"
+    PROTOCOLO_DOCUMENTO ||--o{ DOCUMENTO_ASSINATURA : "assinado"
+    
+    %% Protocolo → Interessados
+    PROTOCOLO ||--o{ PROTOCOLO_INTERESSADO : "possui"
+    PROTOCOLO_INTERESSADO }o--|| PESSOA : "referencia"
+    
+    %% Protocolo → Classificação
+    PROTOCOLO }o--|| PROTOCOLO_TIPO : "é do tipo"
+    PROTOCOLO }o--|| ASSUNTO : "sobre"
+    PROTOCOLO }o--|| SITUACAO : "está em"
+    PROTOCOLO }o--|| DOCUMENTO_TIPO : "tipo documento"
+    
+    %% Protocolo → Órgãos
+    PROTOCOLO }o--|| ORGAO : "está em"
+    PROTOCOLO_MOVIMENTO }o--|| ORGAO : "origem"
+    PROTOCOLO_MOVIMENTO }o--|| ORGAO : "destino"
+    
+    %% Proposituras
+    PROPOSITURA_LEGISLATIVA ||--o{ PROPOSITURA_LEGISLATIVA_TRAMITACAO : "tramita"
+    PROPOSITURA_LEGISLATIVA ||--o{ PROPOSITURA_LEGISLATIVA_DOCUMENTO : "possui"
+    
+    %% Usuários e Segurança
+    USUARIO ||--o{ PROTOCOLO_MOVIMENTO : "executa"
+    USUARIO ||--o{ SEG_USUARIO_PERFIL_FUNCAO : "possui"
+    SEG_PERFIL ||--o{ SEG_USUARIO_PERFIL_FUNCAO : "atribui"
+    SEG_FUNCAO ||--o{ SEG_USUARIO_PERFIL_FUNCAO : "concede"
+    USUARIO }o--|| ORGAO : "pertence"
+    
+    %% Hierarquias
+    ORGAO }o--o| ORGAO : "subordinado a"
+    ASSUNTO }o--o| ASSUNTO : "subassunto de"
+```
+
+---
+
+## 📈 ESTATÍSTICAS DAS TABELAS PRINCIPAIS
+
+```mermaid
+pie title "Distribuição de Registros - Top 10 Tabelas"
+    "sistema_historico (9.9M)" : 9971387
+    "protocolo_movimento (2.7M)" : 2672565
+    "protocolo_visualizador (1.6M)" : 1558930
+    "sistema_log (1.5M)" : 1512694
+    "protocolo_documento (1.3M)" : 1258876
+    "protocolo_interessado (641K)" : 640751
+    "protocolo (637K)" : 636972
+    "protocolo_arquivo (620K)" : 619666
+    "documento_assinatura (497K)" : 496555
+    "protocolo_distribuicao (427K)" : 427003
+```
+
+---
+
+## 🔄 FLUXO DE TRAMITAÇÃO
+
+```mermaid
+stateDiagram-v2
+    [*] --> Cadastrado: Incluir Protocolo
+    
+    Cadastrado --> EmTramitacao: Distribuir
+    EmTramitacao --> EmAnalise: Receber
+    
+    EmAnalise --> AguardandoAssinatura: Gerar Minuta
+    AguardandoAssinatura --> Assinado: Assinar Digitalmente
+    
+    Assinado --> EmTramitacao: Tramitar
+    EmTramitacao --> EmAnalise: Receber
+    
+    EmAnalise --> Finalizado: Despachar
+    Finalizado --> Arquivado: Arquivar
+    
+    EmTramitacao --> Emprestado: Emprestar
+    Emprestado --> EmTramitacao: Devolver
+    
+    EmAnalise --> Sobrestado: Sobrestar
+    Sobrestado --> EmAnalise: Desarquivar
+    
+    Arquivado --> Eliminado: Eliminar (após prazo)
+    
+    Arquivado --> [*]
+    Eliminado --> [*]
+```
+
+---
+
+## 🗂️ RELACIONAMENTO ARQUIVOS
+
+```mermaid
+graph TB
+    subgraph "BANCO DE DADOS"
+        PROTO[Protocolo]
+        DOC[ProtocoloDocumento]
+        ARQ[ProtocoloArquivo]
+        ASS[DocumentoAssinatura]
+    end
+    
+    subgraph "FILESYSTEM Z:"
+        Z1[2026/02/]
+        Z2[HASH_SUF.pdf]
+        Z3[HASH_SUF.p7s]
+    end
+    
+    subgraph "FILESYSTEM G:"
+        G1[materialegislativa/]
+        G2[sessaoplenaria/]
+    end
+    
+    subgraph "MONGODB GridFS"
+        M1[Arquivo Binário]
+        M2[Metadados]
+    end
+    
+    PROTO --> DOC
+    DOC --> ARQ
+    ARQ -.referencia.-> Z1
+    Z1 --> Z2
+    Z2 --> Z3
+    
+    DOC --> ASS
+    ASS -.referencia.-> Z3
+    
+    DOC -.migrado para.-> M1
+    ARQ -.metadados.-> M2
+```
+
+---
+
+## 🏛️ ARQUITETURA LEGISLATIVA
+
+```mermaid
+graph LR
+    subgraph "ENTRADA"
+        PROP[Propositura]
+        PROT[Protocolo]
+    end
+    
+    subgraph "PROCESSAMENTO"
+        TRAM[Tramitação]
+        COMIS[Comissões]
+        MIN[Minutas]
+        PARE[Pareceres]
+    end
+    
+    subgraph "DELIBERAÇÃO"
+        PAUTA[Pauta Plenária]
+        SESSAO[Sessão Plenária]
+        VOTA[Votação]
+    end
+    
+    subgraph "SAÍDA"
+        NORMA[Norma Jurídica]
+        PUBL[Publicação]
+        ARQ[Arquivamento]
+    end
+    
+    PROP --> PROT
+    PROT --> TRAM
+    TRAM --> COMIS
+    COMIS --> MIN
+    MIN --> PARE
+    PARE --> PAUTA
+    PAUTA --> SESSAO
+    SESSAO --> VOTA
+    VOTA --> NORMA
+    VOTA --> ARQ
+    NORMA --> PUBL
+```
+
+---
+
+## 📋 TABELAS POR MÓDULO
+
+### 🔵 Módulo PROTOCOLO (50+ tabelas)
+- tbl_protocolo (principal)
+- tbl_protocolo_documento
+- tbl_protocolo_arquivo
+- tbl_protocolo_movimento
+- tbl_protocolo_distribuicao
+- tbl_protocolo_interessado
+- tbl_protocolo_anexo
+- tbl_protocolo_prazo_resposta
+- tbl_protocolo_assinatura
+- tbl_protocolo_fisico
+- ... +40 tabelas
+
+### 🟢 Módulo LEGISLATIVO (100+ tabelas)
+- tbl_propositura_legislativa
+- tbl_propositura_legislativa_tramitacao
+- tbl_propositura_legislativa_documento
+- tbl_propositura_legislativa_fase_historico
+- tbl_sessao_plenaria
+- tbl_pauta_legislativa
+- tbl_votacao
+- tbl_parlamentar
+- tbl_comissao
+- tbl_mesa_diretora
+- ... +90 tabelas
+
+### 🟡 Módulo DOCUMENTOS (30+ tabelas)
+- tbl_minuta_legislativa
+- tbl_documento_assinatura
+- tbl_documento_tipo
+- tbl_modelo_documento
+- ... +26 tabelas
+
+### 🟣 Módulo SEGURANÇA (20+ tabelas)
+- tbl_usuario
+- tbl_seg_perfil
+- tbl_seg_funcao
+- tbl_seg_usuario_perfil_funcao
+- tbl_seg_modulo
+- ... +15 tabelas
+
+### ⚫ Módulo AUDITORIA (10+ tabelas)
+- tbl_sistema_historico (9.9M registros!)
+- tbl_sistema_log (1.5M registros)
+- tbl_protocolo_visualizador
+- ... +7 tabelas
+
+### 🔴 Módulo AUXILIARES (250+ tabelas)
+- tbl_orgao
+- tbl_assunto
+- tbl_situacao
+- tbl_pessoa
+- tbl_municipio
+- tbl_estado
+- ... +244 tabelas
+
+---
+
+## 🎯 ÍNDICES CRÍTICOS
+
+```sql
+-- Protocolo (queries mais frequentes)
+CREATE INDEX ix_protocolo_numero ON protocolo(txt_numero);
+CREATE INDEX ix_protocolo_dt_protocolo ON protocolo(dt_protocolo DESC);
+CREATE INDEX ix_protocolo_situacao_ativo ON protocolo(cod_situacao, cod_ativo);
+CREATE INDEX ix_protocolo_orgao_atual ON protocolo(cod_orgao_atual) WHERE cod_ativo = 1;
+
+-- Tramitação
+CREATE INDEX ix_movimento_protocolo_data ON protocolo_movimento(cod_protocolo, dt_movimento DESC);
+CREATE INDEX ix_movimento_orgao_destino ON protocolo_movimento(cod_orgao_destino, dt_movimento DESC);
+
+-- Documentos
+CREATE INDEX ix_documento_protocolo ON protocolo_documento(cod_protocolo);
+CREATE INDEX ix_documento_hash ON protocolo_documento(txt_hash);
+
+-- Assinaturas
+CREATE INDEX ix_assinatura_protocolo_doc ON documento_assinatura(cod_protocolo_documento);
+CREATE INDEX ix_assinatura_data ON documento_assinatura(dt_assinatura DESC);
+```
+
+---
+
+**Diagrama gerado em:** 04/02/2026  
+**Total de tabelas:** 477  
+**Registros totais:** ~15.700.000  
+**Próximo:** Gerar Schemas Pydantic e CRUDs
