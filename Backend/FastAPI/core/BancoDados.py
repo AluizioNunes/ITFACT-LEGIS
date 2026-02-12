@@ -16,6 +16,7 @@ from core.Configuracao import (
     MINIO_BUCKET, OPENAI_API_KEY,
 )
 from graphiti_core.llm_client import LLMConfig, OpenAIClient
+from core.GoogleEmbedder import GoogleEmbedder
 
 # SQLAlchemy async engine
 engine = create_async_engine(DATABASE_URL, echo=False)
@@ -84,7 +85,24 @@ async def reconnect_graphiti():
                 model=ai_config.model or "gemini-2.0-flash",
                 base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
             )
-            llm_client = OpenAIClient(config=llm_config)
+            # Use CustomOpenAIClient to fix 404 on structured output
+            from core.CustomOpenAIClient import CustomOpenAIClient
+            llm_client = CustomOpenAIClient(config=llm_config)
+            
+            # Use OpenAIEmbedder with Google Adapter and correct model
+            # Google requires model name with 'models/' prefix for embeddings in some contexts, 
+            # and specifically 'models/gemini-embedding-001' works via OpenAI adapter.
+            # We must use OpenAIEmbedderConfig, NOT LLMConfig.
+            from graphiti_core.embedder.openai import OpenAIEmbedder, OpenAIEmbedderConfig
+            
+            embedder_config = OpenAIEmbedderConfig(
+                api_key=active_key,
+                embedding_model="models/gemini-embedding-001",
+                base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
+            )
+
+            embedder = OpenAIEmbedder(config=embedder_config)
+
         else:
             os.environ["OPENAI_API_KEY"] = active_key
             if "OPENAI_BASE_URL" in os.environ:
@@ -95,12 +113,14 @@ async def reconnect_graphiti():
                 model=ai_config.model
             )
             llm_client = OpenAIClient(config=llm_config)
+            embedder = None # Default to OpenAI with env vars
 
         graphiti_client = Graphiti(
             NEO4J_URI,
             NEO4J_USER,
             NEO4J_PASSWORD,
-            llm_client=llm_client
+            llm_client=llm_client,
+            embedder=embedder
         )
         print("DONE: Graphiti Re-initialized")
     except Exception as e:

@@ -60,16 +60,51 @@ export function AssistantWidget() {
     ]);
     const [selectedDept, setSelectedDept] = useState<string>("TODOS");
     const [selectedUser, setSelectedUser] = useState<any>(null);
+    const PAGE_TITLES: Record<string, string> = {
+        "/": "Portal",
+        "/dashboard": "Dashboard",
+        "/dashboard/legislativo/mesa-diretora": "Mesa Diretora",
+        "/dashboard/legislativo/plenario": "Plenário",
+        "/dashboard/legislativo/comissoes": "Comissões",
+        "/dashboard/legislativo/tramitacao": "Tramitação",
+        "/dashboard/proposituras/protocolo": "Protocolo",
+        "/dashboard/proposituras/pareceres": "Pareceres"
+    };
+
+    const getPageTitle = (path: string) => {
+        if (PAGE_TITLES[path]) return PAGE_TITLES[path];
+        // Fallback for partial matches
+        const parts = path.split('/').filter(Boolean);
+        if (parts.length > 0) {
+            const lastPart = parts[parts.length - 1];
+            return lastPart.charAt(0).toUpperCase() + lastPart.slice(1).replace(/-/g, ' ');
+        }
+        return "Dashboard";
+    };
+
     const [aiMessages, setAiMessages] = useState<Message[]>([
         {
             id: 'welcome',
-            content: `Olá ${user?.name || ''}! Como posso ajudar você no ${pathname === '/' ? 'Portal' : 'Dashboard'} hoje?`,
+            content: `Olá ${user?.name || ''}! Como posso ajudar você no módulo **${getPageTitle(pathname)}** hoje?`,
             senderId: 'ai',
             scope: 'AI',
             sender: { name: 'ASSISTENTE LEGIS' },
             createdAt: new Date().toISOString()
         }
     ]);
+
+    // Update welcome message when path changes
+    useEffect(() => {
+        setAiMessages(prev => {
+            if (prev.length === 1 && prev[0].id === 'welcome') {
+                return [{
+                    ...prev[0],
+                    content: `Olá ${user?.name || ''}! Como posso ajudar você no módulo **${getPageTitle(pathname)}** hoje?`
+                }];
+            }
+            return prev;
+        });
+    }, [pathname, user?.name]);
     const [chatMessages, setChatMessages] = useState<Message[]>([]);
     const [chatScope, setChatScope] = useState<'DEPARTAMENTO' | 'ORGAO' | 'GLOBAL'>('DEPARTAMENTO');
     const [socket, setSocket] = useState<Socket | null>(null);
@@ -116,12 +151,33 @@ export function AssistantWidget() {
         if (chatScrollRef.current) chatScrollRef.current.scrollIntoView({ behavior: "smooth" });
     }, [chatMessages]);
 
-    const sendAiMessage = async () => {
-        if (!aiInput.trim()) return;
+    const [suggestions, setSuggestions] = useState<string[]>([]);
+    const [isAiLoading, setIsAiLoading] = useState(false);
+    const API_URL = process.env.NEXT_PUBLIC_FASTAPI_URL || "http://localhost:8000";
+
+    // Fetch context suggestions when pathname changes
+    useEffect(() => {
+        const fetchContext = async () => {
+            try {
+                const res = await fetch(`${API_URL}/chat/context?path=${encodeURIComponent(pathname)}`);
+                if (res.ok) {
+                    const data = await res.json();
+                    setSuggestions(data.suggestions || []);
+                }
+            } catch (error) {
+                console.error("Failed to fetch context:", error);
+            }
+        };
+        fetchContext();
+    }, [pathname]);
+
+    const sendAiMessage = async (content?: string) => {
+        const msgContent = content || aiInput.trim();
+        if (!msgContent) return;
 
         const userMsg: Message = {
             id: Date.now().toString(),
-            content: aiInput.trim(),
+            content: msgContent,
             senderId: user?.id || 'dev',
             scope: 'AI',
             sender: { name: user?.name || 'VOCÊ' },
@@ -130,19 +186,42 @@ export function AssistantWidget() {
 
         setAiMessages(prev => [...prev, userMsg]);
         setAiInput("");
+        setIsAiLoading(true);
 
-        // Mock AI Response - Will integrate with FastAPI later
-        setTimeout(() => {
+        try {
+            const res = await fetch(`${API_URL}/chat/query`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    message: msgContent,
+                    context_path: pathname
+                })
+            });
+
+            const data = await res.json();
+
             const aiResponse: Message = {
                 id: (Date.now() + 1).toString(),
-                content: `Entendi que você está na tela "${pathname.replace('/dashboard', '').replace('/', '') || 'Dashboard'}". No ITFACT LEGIS, esta área serve para realizar a gestão... (Integração RAG pendente)`,
+                content: data.response || "Mmm, não consegui processar isso agora.",
                 senderId: 'ai',
                 scope: 'AI',
                 sender: { name: 'ASSISTENTE LEGIS' },
                 createdAt: new Date().toISOString()
             };
             setAiMessages(prev => [...prev, aiResponse]);
-        }, 1000);
+        } catch (error) {
+            const errorMsg: Message = {
+                id: (Date.now() + 1).toString(),
+                content: "Desculpe, estou enfrentando problemas de conexão com minha base de conhecimento.",
+                senderId: 'ai',
+                scope: 'AI',
+                sender: { name: 'ASSISTENTE LEGIS' },
+                createdAt: new Date().toISOString()
+            };
+            setAiMessages(prev => [...prev, errorMsg]);
+        } finally {
+            setIsAiLoading(false);
+        }
     };
 
     const sendChatMessage = () => {
@@ -221,8 +300,8 @@ export function AssistantWidget() {
                                     </TabsTrigger>
                                 </TabsList>
 
-                                <TabsContent value="AI" className="flex-1 flex flex-col m-0 p-0 overflow-hidden bg-gradient-to-b from-transparent to-muted/10">
-                                    <ScrollArea className="flex-1 p-5">
+                                <TabsContent value="AI" className="flex-1 flex flex-col m-0 p-0 overflow-hidden bg-gradient-to-b from-transparent to-muted/10 h-full">
+                                    <ScrollArea className="flex-1 p-5 min-h-0">
                                         <div className="space-y-6">
                                             {aiMessages.map((msg) => (
                                                 <div key={msg.id} className={`flex ${msg.senderId === 'ai' ? "justify-start" : "justify-end"}`}>
@@ -232,7 +311,7 @@ export function AssistantWidget() {
                                                                 {msg.senderId === 'ai' ? <Bot className="h-4 w-4" /> : msg.sender.name.substring(0, 1).toUpperCase()}
                                                             </AvatarFallback>
                                                         </Avatar>
-                                                        <div className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm ${msg.senderId === 'ai'
+                                                        <div className={`px-4 py-3 rounded-2xl text-[13px] leading-relaxed shadow-sm whitespace-pre-wrap ${msg.senderId === 'ai'
                                                             ? "bg-card border border-border rounded-tl-none text-foreground"
                                                             : "bg-primary text-primary-foreground rounded-tr-none font-medium"
                                                             }`}>
@@ -241,9 +320,41 @@ export function AssistantWidget() {
                                                     </div>
                                                 </div>
                                             ))}
+                                            {isAiLoading && (
+                                                <div className="flex justify-start">
+                                                    <div className="flex gap-3 max-w-[85%]">
+                                                        <Avatar className="h-8 w-8 border shadow-sm">
+                                                            <AvatarFallback className="bg-primary/10 text-primary"><Bot className="h-4 w-4" /></AvatarFallback>
+                                                        </Avatar>
+                                                        <div className="px-4 py-3 rounded-2xl rounded-tl-none bg-card border border-border">
+                                                            <div className="flex gap-1">
+                                                                <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.3s]"></div>
+                                                                <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce [animation-delay:-0.15s]"></div>
+                                                                <div className="h-2 w-2 bg-blue-400 rounded-full animate-bounce"></div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            )}
                                             <div ref={aiScrollRef} />
                                         </div>
                                     </ScrollArea>
+
+                                    {/* Context Suggestions */}
+                                    {suggestions.length > 0 && (
+                                        <div className="px-5 py-2 flex gap-2 overflow-x-auto no-scrollbar bg-blue-50/30 border-t border-blue-100/50">
+                                            {suggestions.map((s, i) => (
+                                                <button
+                                                    key={i}
+                                                    onClick={() => sendAiMessage(s)}
+                                                    className="shrink-0 text-[10px] px-3 py-1.5 bg-white border border-blue-200 text-blue-600 rounded-full hover:bg-blue-50 hover:border-blue-300 transition-colors font-medium whitespace-nowrap shadow-sm"
+                                                >
+                                                    {s}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    )}
+
                                     <div className="p-5 border-t bg-white">
                                         <div className="flex gap-2 p-2 rounded-2xl border border-blue-100 bg-blue-50/30 shadow-inner focus-within:ring-2 ring-blue-500/10 transition-all">
                                             <Input
@@ -252,8 +363,9 @@ export function AssistantWidget() {
                                                 value={aiInput}
                                                 onChange={(e) => setAiInput(e.target.value)}
                                                 onKeyDown={(e) => e.key === 'Enter' && sendAiMessage()}
+                                                disabled={isAiLoading}
                                             />
-                                            <Button size="icon" className="shrink-0 h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200 transition-all" onClick={sendAiMessage}>
+                                            <Button size="icon" className="shrink-0 h-10 w-10 rounded-xl bg-blue-600 hover:bg-blue-700 shadow-md shadow-blue-200 transition-all" onClick={() => sendAiMessage()} disabled={isAiLoading}>
                                                 <Send className="h-4 w-4" />
                                             </Button>
                                         </div>
