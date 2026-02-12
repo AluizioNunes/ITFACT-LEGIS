@@ -20,12 +20,11 @@ pymongo
 # Neo4j
 neo4j
 
-# RabbitMQ
+# RabbitMQ (#7)
 aio-pika
 
 # MinIO/S3
 minio
-boto3
 
 # PDF Processing
 PyMuPDF
@@ -36,17 +35,16 @@ pypdf
 langchain
 langchain-community
 langchain-core
-llama-index
-llama-index-core
 graphiti-core
 
-# Vector Stores
-chromadb
-faiss-cpu
+# Vector Store (pgvector only — #8 removed chromadb, faiss, llama-index)
 pgvector
 
 # Embedding Models
 sentence-transformers
+
+# Rate Limiting (#11)
+slowapi
 
 # Utilities
 python-jose[cryptography]
@@ -56,3 +54,4 @@ httpx
 aiofiles
 scikit-learn
 numpy
+scipy

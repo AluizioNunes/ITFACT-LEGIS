@@ -24,6 +24,7 @@
         "@nestjs/jwt": "^10.2.0",
         "@nestjs/config": "^3.3.0",
         "@nestjs/swagger": "^8.0.7",
+        "@nestjs/throttler": "^6.3.0",
         "@prisma/client": "^6.2.1",
         "prisma": "^6.2.1",
         "drizzle-orm": "^0.37.0",

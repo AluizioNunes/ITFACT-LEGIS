@@ -31,7 +31,8 @@ import {
     Briefcase,
     Shield,
     User,
-    MessageCircle
+    MessageCircle,
+    Plug
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI } from "@/contexts/UIContext";
@@ -151,6 +152,7 @@ const menuItems: MenuItem[] = [
                     { title: "Minhas Minutas", href: "/dashboard/minutas" },
                     { title: "Aprovação", href: "/dashboard/minutas/aprovacao" },
                     { title: "Expedição", href: "/dashboard/minutas/expedicao" },
+                    { title: "Deduplicação IA", href: "/dashboard/minutas/deduplicacao" },
                 ],
             },
             {
@@ -203,6 +205,7 @@ const menuItems: MenuItem[] = [
                 ],
             },
             { title: "Pesquisa IA", icon: Search, href: "/dashboard/pesquisa-inteligente" },
+            { title: "Integrações", icon: Plug, href: "/dashboard/sistema/integracoes" },
             { title: "Notificações", icon: Bell, href: "/dashboard/notificacoes", badge: 8 },
             {
                 title: "Ajuda",

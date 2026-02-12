@@ -1,9 +1,9 @@
 name: legis
 
 services:
-  # PostgreSQL Database (Latest)
+  # PostgreSQL + pgvector (vector similarity search)
   postgres:
-    image: postgres:latest
+    image: pgvector/pgvector:pg17
     container_name: LEGIS-POSTGRESQL
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-itfact_legis}
@@ -232,6 +232,38 @@ services:
       timeout: 5s
       retries: 5
 
+  # Prometheus (#14 Monitoring)
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: LEGIS-PROMETHEUS
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus_data:/prometheus
+    networks:
+      - legis-network
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=30d'
+
+  # Grafana (#14 Monitoring)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: LEGIS-GRAFANA
+    ports:
+      - "3200:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-legis2026}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    networks:
+      - legis-network
+
 networks:
   legis-network:
     driver: bridge
@@ -244,3 +276,6 @@ volumes:
   neo4j_logs:
   rabbitmq_data:
   minio_data:
+  prometheus_data:
+  grafana_data:
+

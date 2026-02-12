@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -63,11 +64,21 @@ import { VersioningModule } from './versioning/versioning.module';
 import { PortalCidadaoModule } from './portal-cidadao/portal-cidadao.module';
 import { TceAmModule } from './tce-am/tce-am.module';
 
+// Rate Limiting (#11)
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
+
 @Module({
     imports: [
         ConfigModule.forRoot({
             isGlobal: true,
         }),
+
+        // Rate Limiting — 60 requests/minute per IP (#11)
+        ThrottlerModule.forRoot([{
+            ttl: 60000,
+            limit: 60,
+        }]),
+
         PrismaModule,
         AuthModule,
         UsersModule,
@@ -130,6 +141,13 @@ import { TceAmModule } from './tce-am/tce-am.module';
     ],
 
     controllers: [AppController],
-    providers: [AppService],
+    providers: [
+        AppService,
+        // Global rate limit guard (#11)
+        {
+            provide: APP_GUARD,
+            useClass: ThrottlerGuard,
+        },
+    ],
 })
 export class AppModule { }
