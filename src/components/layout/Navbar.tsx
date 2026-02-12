@@ -47,9 +47,6 @@ export function Navbar() {
         <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all duration-300 shadow-sm">
             <div className="container flex h-14 items-center gap-4 px-6 max-w-full">
                 <div className="flex items-center gap-4">
-                    <Button variant="ghost" size="icon" className="h-9 w-9 text-blue-900" onClick={toggleSidebar}>
-                        <Menu className="h-6 w-6" />
-                    </Button>
                     <h2 className="text-sm font-bold text-blue-900 dark:text-blue-100 hidden lg:block tracking-tight uppercase">
                         ITFACT LEGIS - SISTEMA DE GESTÃO ADMINISTRATIVA E LEGISLATIVA
                     </h2>

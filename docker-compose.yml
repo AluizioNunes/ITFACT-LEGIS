@@ -126,9 +126,9 @@ services:
     container_name: LEGIS-NESTJS
     environment:
       NODE_ENV: ${NODE_ENV}
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
-      RABBITMQ_URL: ${RABBITMQ_URL}
+      DATABASE_URL: ${DOCKER_DATABASE_URL_NODE}
+      REDIS_URL: ${DOCKER_REDIS_URL}
+      RABBITMQ_URL: ${DOCKER_RABBITMQ_URL}
       JWT_SECRET: ${JWT_SECRET}
       PORT: ${PORT}
     ports:
@@ -154,13 +154,13 @@ services:
       dockerfile: Dockerfile
     container_name: LEGIS-FASTAPI
     environment:
-      DATABASE_URL: ${DATABASE_URL}
-      REDIS_URL: ${REDIS_URL}
-      MONGODB_URL: ${MONGODB_URL}
-      NEO4J_URI: ${NEO4J_URI}
+      DATABASE_URL: ${DOCKER_DATABASE_URL_PYTHON}
+      REDIS_URL: ${DOCKER_REDIS_URL}
+      MONGODB_URL: ${DOCKER_MONGODB_URL}
+      NEO4J_URI: ${DOCKER_NEO4J_URI}
       NEO4J_USER: ${NEO4J_USER}
       NEO4J_PASSWORD: ${NEO4J_PASSWORD}
-      RABBITMQ_URL: ${RABBITMQ_URL}
+      RABBITMQ_URL: ${DOCKER_RABBITMQ_URL}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
@@ -239,7 +239,7 @@ services:
     ports:
       - "9090:9090"
     volumes:
-      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./monitoring:/etc/prometheus:ro
       - prometheus_data:/prometheus
     networks:
       - legis-network

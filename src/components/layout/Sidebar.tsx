@@ -259,12 +259,32 @@ export function Sidebar({ className }: SidebarProps) {
                     className
                 )}
             >
-                {/* Logo Area - Simplified */}
-                {!isCollapsed && (
-                    <div className="p-6 border-b">
-                        <h1 className="text-xl font-bold text-blue-900 tracking-tighter">ITFACT <span className="text-blue-500">LEGIS</span></h1>
-                    </div>
-                )}
+                {/* Header Area with Toggle */}
+                <div className={cn(
+                    "flex items-center border-b h-16 min-h-[64px] shrink-0 overflow-hidden",
+                    isCollapsed ? "justify-center" : "justify-between px-6"
+                )}>
+                    {!isCollapsed && (
+                        <motion.h1
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            className="text-xl font-bold text-blue-900 tracking-tighter whitespace-nowrap"
+                        >
+                            ITFACT <span className="text-blue-500">LEGIS</span>
+                        </motion.h1>
+                    )}
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className={cn(
+                            "text-blue-900 hover:bg-blue-50 transition-all rounded-xl",
+                            isCollapsed ? "h-10 w-10" : "h-8 w-8 ml-2"
+                        )}
+                        onClick={toggleSidebar}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </Button>
+                </div>
 
                 <ScrollArea className="flex-1 px-3">
                     <nav className="space-y-1.5 py-6">

@@ -16,7 +16,6 @@ from core.Configuracao import (
     MINIO_BUCKET, OPENAI_API_KEY,
 )
 from graphiti_core.llm_client import LLMConfig, OpenAIClient
-from core.GoogleEmbedder import GoogleEmbedder
 
 # SQLAlchemy async engine
 engine = create_async_engine(DATABASE_URL, echo=False)

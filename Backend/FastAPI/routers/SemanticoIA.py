@@ -57,15 +57,8 @@ CREATE TABLE IF NOT EXISTS "DocEmbeddings" (
     "DataCriacao" TIMESTAMPTZ DEFAULT NOW()
 );
 
-DO $$
-BEGIN
-    IF NOT EXISTS (
-        SELECT 1 FROM pg_indexes WHERE indexname = 'IdxEmbeddings_vector'
-    ) THEN
-        CREATE INDEX "IdxEmbeddings_vector" ON "DocEmbeddings"
-            USING ivfflat ("Embedding" vector_cosine_ops) WITH (lists = 100);
-    END IF;
-END $$;
+CREATE INDEX IF NOT EXISTS "IdxEmbeddings_vector" ON "DocEmbeddings"
+    USING ivfflat ("Embedding" vector_cosine_ops) WITH (lists = 100);
 """
 
 
@@ -73,17 +66,14 @@ async def setup_pgvector():
     """Executa setup do pgvector no startup"""
     try:
         async with engine.begin() as conn:
+            # Split carefully to avoid issues with semicolon
             for statement in PGVECTOR_SETUP_SQL.strip().split(";"):
                 stmt = statement.strip()
-                if stmt and not stmt.startswith("DO"):
+                if stmt:
                     await conn.execute(text(stmt))
-            do_block = [s for s in PGVECTOR_SETUP_SQL.split(";") if s.strip().startswith("DO")]
-            for block in do_block:
-                if block.strip():
-                    await conn.execute(text(block.strip() + ";"))
         print("INFO: pgvector setup complete (table: DocEmbeddings)")
     except Exception as e:
-        print(f"INFO: pgvector setup skipped (will retry on first request): {e}")
+        print(f"INFO: pgvector setup error: {e}")
 
 
 # ── Pydantic Models ──

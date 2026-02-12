@@ -300,7 +300,7 @@ export function AssistantWidget() {
                                     </TabsTrigger>
                                 </TabsList>
 
-                                <TabsContent value="AI" className="flex-1 flex flex-col m-0 p-0 overflow-hidden bg-gradient-to-b from-transparent to-muted/10 h-full">
+                                <TabsContent value="AI" className="flex-1 flex flex-col m-0 p-0 overflow-hidden bg-gradient-to-b from-transparent to-muted/10">
                                     <ScrollArea className="flex-1 p-5 min-h-0">
                                         <div className="space-y-6">
                                             {aiMessages.map((msg) => (
