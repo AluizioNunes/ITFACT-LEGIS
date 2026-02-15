@@ -2,6 +2,7 @@
 
 import React from 'react';
 import { Award, Plus, CheckCircle2, Calendar, Users, Star, Medal, Trophy } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 const TIPO_HONRARIA: Record<string, { label: string; icon: React.ElementType; color: string }> = {
     MEDALHA_OURO: { label: 'Medalha de Ouro', icon: Medal, color: 'bg-amber-500/10 text-amber-400 border-amber-500/30' },
@@ -67,11 +68,11 @@ export default function HonrariasPage() {
                                         <p className="text-sm text-zinc-400 mt-1">{h.justificativa}</p>
                                         <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
                                             <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{h.autor}</span>
-                                            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{new Date(h.data).toLocaleDateString('pt-BR')}</span>
+                                            <span className="flex items-center gap-1"><Calendar className="w-3.5 h-3.5" />{formatDate(h.data)}</span>
                                             {h.cerimonia && (
                                                 <span className="flex items-center gap-1 text-amber-400">
                                                     <Star className="w-3.5 h-3.5" />
-                                                    Cerimônia: {new Date(h.cerimonia).toLocaleDateString('pt-BR')}
+                                                    Cerimônia: {formatDate(h.cerimonia)}
                                                 </span>
                                             )}
                                         </div>

@@ -7,6 +7,10 @@ import time
 import logging
 import traceback
 import json
+from dotenv import load_dotenv
+
+# Load env from root
+load_dotenv(os.path.join(os.getcwd(), ".env"))
 
 # Add parent dir to path to import core modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -21,59 +25,18 @@ logging.basicConfig(
 logging.getLogger("httpx").setLevel(logging.DEBUG)
 logging.getLogger("openai").setLevel(logging.DEBUG)
 
-from core.Configuracao import (
-    NEO4J_URI, NEO4J_USER, NEO4J_PASSWORD
-)
-from core.AIConfig import ai_config
-from graphiti_core import Graphiti
-from graphiti_core.llm_client import LLMConfig, OpenAIClient
-from graphiti_core.embedder.openai import OpenAIEmbedder, OpenAIEmbedderConfig
-
-# Imports for Custom Client
-from core.CustomOpenAIClient import CustomOpenAIClient
+from core.ClientAI import ClientAI
 
 DOCS_DIR = Path("d:/PROJETOS/ITFACT-LEGIS/Docs")
 
 async def get_graphiti_client():
-    """Initialize Graphiti client similar to BancoDados.py but for standalone script."""
+    """Initialize Graphiti client using ClientAI factory."""
     
     # Load AI Config (defaults or env vars)
-    print(f"INFO: Initializing Graphiti with Provider={ai_config.provider} Model={ai_config.model}")
+    print(f"INFO: Initializing Graphiti with ClientAI...")
     
-    active_key = ai_config.get_active_key()
-    
-    # Set environment variables as fallback
-    if ai_config.provider == "google":
-        os.environ["GOOGLE_API_KEY"] = active_key
-        os.environ["GOOGLE_AI_API_KEY"] = active_key
-        os.environ["OPENAI_API_KEY"] = active_key
-        os.environ["OPENAI_BASE_URL"] = "https://generativelanguage.googleapis.com/v1beta/openai/"
-        
-        # LLM Config for Chat
-        llm_config = LLMConfig(
-            api_key=active_key,
-            model=ai_config.model or "gemini-2.0-flash",
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-        )
-        # USE CUSTOM CLIENT
-        llm_client = CustomOpenAIClient(config=llm_config)
-        
-        # Embedder Config for Embeddings using OpenAI Adapter
-        embedder_config = OpenAIEmbedderConfig(
-            api_key=active_key,
-            embedding_model="models/gemini-embedding-001",
-            base_url="https://generativelanguage.googleapis.com/v1beta/openai/"
-        )
-        embedder = OpenAIEmbedder(config=embedder_config)
-        
-    else:
-        llm_config = LLMConfig(
-            api_key=active_key,
-            model=ai_config.model
-        )
-        llm_client = OpenAIClient(config=llm_config)
-        embedder = None
-
+    llm_client = ClientAI.get_llm_client()
+    embedder = ClientAI.get_embedding_client()
     
     return Graphiti(
         "bolt://localhost:7687", # Use localhost for script running on host
@@ -157,12 +120,17 @@ async def ingest_docs():
                 if success:
                     if i % 10 == 0:
                         print(f"INFO: Indexed chunk {i+1}/{len(chunks)}", flush=True)
+                    # Proactive sleep after successful chunk
+                    time.sleep(15) 
                 else:
                     print(f"ERROR: Giving up on chunk {i+1}", flush=True)
-                    # continue to next chunk or abort? continue.
-
-                # Sleep to avoid Rate Limits (Free Tier) - Base sleep even on success
-                time.sleep(4) 
+                    # If a 429 error caused the failure, wait longer
+                    if "429" in error_msg or "Rate limit" in error_msg:
+                        print(f"WARN: Rate limit hit on chunk {i+1}. Waiting 60s...", flush=True)
+                        time.sleep(60)
+                    else:
+                        # Default sleep for other errors
+                        time.sleep(10)
             
             logging.info(f"SUCCESS: Indexed {filename} ({len(chunks)} chunks)")
             print(f"SUCCESS: Indexed {filename} ({len(chunks)} chunks)", flush=True)

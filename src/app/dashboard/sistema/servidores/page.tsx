@@ -7,12 +7,12 @@ import {
     UserPlus,
     Search,
     Filter,
-    ArrowUpRight,
-    TrendingUp,
     Briefcase,
     ShieldCheck,
-    Clock,
-    UserCheck
+    UserCheck,
+    TrendingUp,
+    ArrowUpRight,
+    Clock
 } from "lucide-react";
 import {
     Card,
@@ -50,7 +50,8 @@ export default function ServidoresPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     if (!mounted) return null;

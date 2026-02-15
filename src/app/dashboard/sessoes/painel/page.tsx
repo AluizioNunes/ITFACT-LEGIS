@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Users, Clock, Vote, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
+import { Clock, Vote, CheckCircle2, XCircle, MinusCircle } from "lucide-react";
 import React from "react";
 
 export default function PainelVotacaoPage() {
@@ -74,13 +74,13 @@ export default function PainelVotacaoPage() {
                         initial={{ opacity: 0, scale: 0.9 }}
                         animate={{ opacity: 1, scale: 1 }}
                         className={`p-3 rounded-xl border flex items-center gap-3 ${i % 7 === 0 ? "bg-emerald-500/10 border-emerald-500/20" :
-                                i % 11 === 0 ? "bg-red-500/10 border-red-500/20" :
-                                    "bg-white/5 border-white/10"
+                            i % 11 === 0 ? "bg-red-500/10 border-red-500/20" :
+                                "bg-white/5 border-white/10"
                             }`}
                     >
                         <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs ${i % 7 === 0 ? "bg-emerald-500 text-white" :
-                                i % 11 === 0 ? "bg-red-500 text-white" :
-                                    "bg-slate-800 text-slate-400"
+                            i % 11 === 0 ? "bg-red-500 text-white" :
+                                "bg-slate-800 text-slate-400"
                             }`}>
                             {i + 1}
                         </div>

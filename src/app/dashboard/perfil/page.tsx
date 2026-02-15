@@ -4,14 +4,10 @@ import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
     User,
-    Mail,
-    Phone,
-    MapPin,
     Shield,
     Key,
     Save,
     Camera,
-    CheckCircle2,
     Calendar,
     Briefcase,
     Building2,
@@ -34,7 +30,8 @@ export default function PerfilPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     if (!mounted) return null;

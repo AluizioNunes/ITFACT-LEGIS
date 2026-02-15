@@ -30,8 +30,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const storedUser = localStorage.getItem("auth_user");
 
         if (storedToken && storedUser) {
-            setToken(storedToken);
-            setUser(JSON.parse(storedUser));
+            setTimeout(() => {
+                setToken(storedToken);
+                setUser(JSON.parse(storedUser));
+            }, 0);
         } else if (process.env.NODE_ENV === "development") {
             // Default mock user for dev visibility
             const mockUser = {
@@ -42,8 +44,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
                 departamentoId: "dep-legislativo",
                 orgaoId: "orgao-principal"
             };
-            setToken("mock-token");
-            setUser(mockUser);
+            setTimeout(() => {
+                setToken("mock-token");
+                setUser(mockUser);
+            }, 0);
         }
     }, []);
 

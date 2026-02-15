@@ -3,8 +3,9 @@
 import React, { useState } from 'react';
 import {
     FileText, CheckCircle2, Clock, Edit3, Eye, Shield, Sparkles,
-    AlertTriangle, Users, Gavel, Download, Plus, Search
+    AlertTriangle, Users, Download, Plus
 } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 const mockRedacoes = [
     {
@@ -93,8 +94,8 @@ export default function RedacaoFinalPage() {
                         key={s}
                         onClick={() => setFilter(s)}
                         className={`px-3 py-2 text-xs rounded-lg border transition-all ${filter === s
-                                ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
-                                : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'
+                            ? 'bg-indigo-500/20 border-indigo-500/40 text-indigo-300'
+                            : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'
                             }`}
                     >
                         {s === 'TODOS' ? 'Todas' : STATUS_MAP[s]?.label || s}
@@ -125,11 +126,11 @@ export default function RedacaoFinalPage() {
                                     <div className="flex items-center gap-4 mt-3 text-xs text-zinc-500">
                                         <span className="flex items-center gap-1"><Shield className="w-3.5 h-3.5" />{red.comissao}</span>
                                         <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />Relator: {red.relator}</span>
-                                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{new Date(red.dataCriacao).toLocaleDateString('pt-BR')}</span>
+                                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{formatDate(red.dataCriacao)}</span>
                                         {red.dataAprovacao && (
                                             <span className="flex items-center gap-1 text-emerald-500">
                                                 <CheckCircle2 className="w-3.5 h-3.5" />
-                                                Aprovada em {new Date(red.dataAprovacao).toLocaleDateString('pt-BR')}
+                                                Aprovada em {formatDate(red.dataAprovacao)}
                                             </span>
                                         )}
                                     </div>

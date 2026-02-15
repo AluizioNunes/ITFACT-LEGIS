@@ -16,18 +16,15 @@ import {
     Legend
 } from "recharts";
 import {
-    FileText,
     CheckCircle2,
     Clock,
     AlertCircle,
-    Plus,
     Filter,
     Search,
     ArrowUpRight,
     TrendingUp,
     Gavel,
     ScrollText,
-    History
 } from "lucide-react";
 import {
     Card,
@@ -84,7 +81,8 @@ export default function PropositurasPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     return (

@@ -13,8 +13,6 @@ import {
     UserCircle
 } from "lucide-react";
 import {
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     Tooltip,

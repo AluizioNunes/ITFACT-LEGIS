@@ -36,6 +36,8 @@ langchain
 langchain-community
 langchain-core
 graphiti-core
+openai
+python-dotenv
 
 # Vector Store (pgvector only — #8 removed chromadb, faiss, llama-index)
 pgvector
@@ -55,3 +57,6 @@ aiofiles
 scikit-learn
 numpy
 scipy
+python-docx
+reportlab
+pypandoc

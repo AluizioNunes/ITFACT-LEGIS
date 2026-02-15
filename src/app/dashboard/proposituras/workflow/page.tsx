@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import {
-    GitBranch, ArrowRight, Clock, AlertTriangle, CheckCircle2, XCircle,
+    GitBranch, ArrowRight, Clock, AlertTriangle, CheckCircle2,
     FileText, Users, Gavel, BookOpen, Send, Shield, Sparkles, ChevronRight,
-    Play, Pause, SkipForward
+    Play, SkipForward
 } from 'lucide-react';
 
 // Estado visual de cada fase do workflow
@@ -131,8 +131,8 @@ export default function WorkflowPage() {
                                 <p className="text-xs text-zinc-400 mt-1 line-clamp-2">{prop.ementa}</p>
                                 <div className="flex items-center gap-2 mt-2">
                                     <span className={`text-xs px-2 py-0.5 rounded-full ${prop.regime === 'URGENCIA' ? 'bg-amber-500/20 text-amber-400' :
-                                            prop.regime === 'PRAZO_FATAL' ? 'bg-red-500/20 text-red-400' :
-                                                'bg-zinc-700 text-zinc-400'
+                                        prop.regime === 'PRAZO_FATAL' ? 'bg-red-500/20 text-red-400' :
+                                            'bg-zinc-700 text-zinc-400'
                                         }`}>
                                         {prop.regime}
                                     </span>

@@ -11,16 +11,18 @@ export class VereadoresService {
         cpf: string;
         partidoId: string;
         email?: string;
+        foto?: string;
         biografia?: string;
+        anoEleito?: number;
         userId?: string;
     }) {
-        return this.prisma.simplifiedVereador.create({
+        return this.prisma.parlamentar.create({
             data,
         });
     }
 
     async findAll() {
-        return this.prisma.simplifiedVereador.findMany({
+        return this.prisma.parlamentar.findMany({
             include: {
                 partido: true,
                 mandatos: {
@@ -31,7 +33,7 @@ export class VereadoresService {
     }
 
     async findOne(id: string) {
-        const vereador = await this.prisma.simplifiedVereador.findUnique({
+        const parlamentar = await this.prisma.parlamentar.findUnique({
             where: { id },
             include: {
                 partido: true,
@@ -44,15 +46,15 @@ export class VereadoresService {
                 },
             },
         });
-        if (!vereador) throw new NotFoundException('Vereador not found');
-        return vereador;
+        if (!parlamentar) throw new NotFoundException('Parlamentar not found');
+        return parlamentar;
     }
 
-    async addMandato(vereadorId: string, data: { legislaturaId: string; inicio: Date; status: string }) {
-        return this.prisma.mandatoVereador.create({
+    async addMandato(parlamentarId: string, data: { legislaturaId: string; inicio: Date; status: string }) {
+        return this.prisma.mandatoParlamentar.create({
             data: {
                 ...data,
-                vereadorId,
+                parlamentarId,
             },
         });
     }

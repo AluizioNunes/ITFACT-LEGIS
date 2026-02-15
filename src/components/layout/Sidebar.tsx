@@ -11,10 +11,8 @@ import {
     FileText,
     ArrowRightLeft,
     Edit3,
-    Scale,
     PenTool,
     Archive,
-    Library,
     Users,
     Gavel,
     BarChart2,
@@ -22,8 +20,6 @@ import {
     Search,
     Bell,
     Globe,
-    HelpCircle,
-    ChevronDown,
     ChevronRight,
     LogOut,
     Menu,
@@ -31,8 +27,9 @@ import {
     Briefcase,
     Shield,
     User,
-    MessageCircle,
-    Plug
+    Plug,
+    HelpCircle,
+    X
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useUI } from "@/contexts/UIContext";
@@ -71,10 +68,10 @@ const menuItems: MenuItem[] = [
         href: "/dashboard",
     },
     {
-        title: "Poder Legislativo",
+        title: "Legislativo",
         icon: Gavel,
         submenu: [
-            { title: "Vereadores (Analítico)", href: "/dashboard/legislativo/vereadores" },
+            { title: "Parlamentares", href: "/dashboard/legislativo/parlamentares" },
             { title: "Mesa Diretora (BI)", href: "/dashboard/legislativo/mesa-diretora" },
             { title: "Comissões (Painel)", href: "/dashboard/legislativo/comissoes/permanentes" },
             { title: "Sessões Plenárias", href: "/dashboard/sessoes" },
@@ -85,17 +82,23 @@ const menuItems: MenuItem[] = [
             { title: "Tribuna Popular", href: "/dashboard/sessoes/tribuna" },
             { title: "Orçamento (Analítico)", href: "/dashboard/legislativo/orcamento" },
             { title: "Legislação & Leis", href: "/dashboard/legislativo/legislacao" },
-            { title: "Proposituras", href: "/dashboard/proposituras" },
-            { title: "Tramitação Digital", href: "/dashboard/proposituras/tramitacao" },
-            { title: "Workflow IA", href: "/dashboard/proposituras/workflow" },
-            { title: "Emendas", href: "/dashboard/proposituras/emendas" },
-            { title: "Pareceres", href: "/dashboard/proposituras/pareceres" },
-            { title: "Vetos", href: "/dashboard/proposituras/vetos" },
-            { title: "Discussões", href: "/dashboard/proposituras/discussoes" },
-            { title: "Redação Final", href: "/dashboard/proposituras/redacao-final" },
-            { title: "Versioning (Git de Leis)", href: "/dashboard/proposituras/versioning" },
-            { title: "Moções", href: "/dashboard/legislativo/mocoes" },
-            { title: "Honrarias & Comendas", href: "/dashboard/legislativo/honrarias" },
+            {
+                title: "Proposituras",
+                icon: FileText,
+                submenu: [
+                    { title: "Pesquisa Geral", href: "/dashboard/proposituras" },
+                    { title: "Tramitação Digital", href: "/dashboard/proposituras/tramitacao" },
+                    { title: "Workflow IA", href: "/dashboard/proposituras/workflow" },
+                    { title: "Emendas", href: "/dashboard/proposituras/emendas" },
+                    { title: "Pareceres", href: "/dashboard/proposituras/pareceres" },
+                    { title: "Vetos", href: "/dashboard/proposituras/vetos" },
+                    { title: "Discussões", href: "/dashboard/proposituras/discussoes" },
+                    { title: "Redação Final", href: "/dashboard/proposituras/redacao-final" },
+                    { title: "Versioning (Git de Leis)", href: "/dashboard/proposituras/versioning" },
+                    { title: "Moções", href: "/dashboard/legislativo/mocoes" },
+                    { title: "Honrarias & Comendas", href: "/dashboard/legislativo/honrarias" },
+                ]
+            },
             { title: "TCE-AM (Tribunal de Contas)", href: "/dashboard/legislativo/tce-am" },
             { title: "Alertas de Prazo", href: "/dashboard/alertas" },
             { title: "Analytics IA", href: "/dashboard/analytics" },
@@ -225,12 +228,16 @@ export function Sidebar({ className }: SidebarProps) {
     const pathname = usePathname();
     const { isSidebarCollapsed: isCollapsed, toggleSidebar } = useUI();
     const [mounted, setMounted] = React.useState(false);
-    const [openSubmenus, setOpenSubmenus] = React.useState<Record<string, boolean>>({});
     const [isMobileOpen, setIsMobileOpen] = React.useState(false);
+    const [openSubmenus, setOpenSubmenus] = React.useState<Record<string, boolean>>({});
 
     React.useEffect(() => {
         setMounted(true);
     }, []);
+
+    React.useEffect(() => {
+        setIsMobileOpen(false);
+    }, [pathname]);
 
     const toggleSubmenu = (title: string) => {
         setOpenSubmenus((prev) => ({
@@ -251,11 +258,25 @@ export function Sidebar({ className }: SidebarProps) {
 
     return (
         <>
+            {/* Mobile Backdrop */}
+            <AnimatePresence>
+                {isMobileOpen && (
+                    <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                        onClick={() => setIsMobileOpen(false)}
+                        className="fixed inset-0 bg-blue-900/20 backdrop-blur-sm z-[45] lg:hidden"
+                    />
+                )}
+            </AnimatePresence>
+
             <motion.div
-                animate={{ width: isCollapsed ? 70 : 256 }}
+                animate={{ width: (isCollapsed && !isMobileOpen) ? 70 : 256 }}
                 transition={{ duration: 0.15, ease: "easeInOut" }}
                 className={cn(
-                    "hidden lg:flex flex-col border-r bg-white h-screen sticky top-0 z-50 overflow-hidden",
+                    "fixed inset-y-0 left-0 lg:sticky lg:flex flex-col border-r bg-white h-screen z-50 overflow-hidden transition-transform lg:translate-x-0 duration-300",
+                    isMobileOpen ? "translate-x-0 w-[256px] shadow-2xl" : "-translate-x-full lg:translate-x-0",
                     className
                 )}
             >
@@ -280,9 +301,9 @@ export function Sidebar({ className }: SidebarProps) {
                             "text-blue-900 hover:bg-blue-50 transition-all rounded-xl",
                             isCollapsed ? "h-10 w-10" : "h-8 w-8 ml-2"
                         )}
-                        onClick={toggleSidebar}
+                        onClick={isMobileOpen ? () => setIsMobileOpen(false) : toggleSidebar}
                     >
-                        <Menu className="h-5 w-5" />
+                        {isMobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
                     </Button>
                 </div>
 
@@ -291,7 +312,7 @@ export function Sidebar({ className }: SidebarProps) {
                         <TooltipProvider delayDuration={0}>
                             {menuItems.map((item) => (
                                 <div key={item.title}>
-                                    {isCollapsed ? (
+                                    {(isCollapsed && !isMobileOpen) ? (
                                         <Tooltip>
                                             <TooltipTrigger asChild>
                                                 <div className="relative">
@@ -314,18 +335,41 @@ export function Sidebar({ className }: SidebarProps) {
                                                                     <span className="text-[10px] font-bold text-blue-900 tracking-widest">{item.title}</span>
                                                                 </div>
                                                                 <div className="space-y-1">
-                                                                    {item.submenu.map((sub: any) => (
-                                                                        <Link
-                                                                            key={sub.href || sub.title}
-                                                                            href={sub.href || "#"}
-                                                                            className={cn(
-                                                                                "flex items-center px-3 py-2 text-[10px] font-bold rounded-lg transition-colors hover:bg-blue-50 hover:text-blue-700",
-                                                                                pathname === sub.href ? "bg-blue-50 text-blue-700 font-bold" : "text-slate-600"
-                                                                            )}
-                                                                        >
-                                                                            {sub.title}
-                                                                        </Link>
-                                                                    ))}
+                                                                    {item.submenu.map((sub: any) => {
+                                                                        if (sub.submenu) {
+                                                                            return (
+                                                                                <div key={sub.title} className="px-2 py-1 bg-slate-50/50 rounded-lg mb-1">
+                                                                                    <div className="text-[9px] font-bold text-blue-900/60 mb-1 uppercase px-1">{sub.title}</div>
+                                                                                    <div className="space-y-0.5 ml-1">
+                                                                                        {sub.submenu.map((ss: any) => (
+                                                                                            <Link
+                                                                                                key={ss.href}
+                                                                                                href={ss.href}
+                                                                                                className={cn(
+                                                                                                    "flex items-center px-3 py-1.5 text-[9px] font-bold rounded-md transition-colors hover:bg-white hover:text-blue-700",
+                                                                                                    pathname === ss.href ? "bg-white text-blue-700 shadow-sm" : "text-slate-500"
+                                                                                                )}
+                                                                                            >
+                                                                                                {ss.title}
+                                                                                            </Link>
+                                                                                        ))}
+                                                                                    </div>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return (
+                                                                            <Link
+                                                                                key={sub.href || sub.title}
+                                                                                href={sub.href || "#"}
+                                                                                className={cn(
+                                                                                    "flex items-center px-3 py-2 text-[10px] font-bold rounded-lg transition-colors hover:bg-blue-50 hover:text-blue-700",
+                                                                                    pathname === sub.href ? "bg-blue-50 text-blue-700 font-bold" : "text-slate-600"
+                                                                                )}
+                                                                            >
+                                                                                {sub.title}
+                                                                            </Link>
+                                                                        );
+                                                                    })}
                                                                 </div>
                                                             </PopoverContent>
                                                         </Popover>
@@ -399,18 +443,67 @@ export function Sidebar({ className }: SidebarProps) {
                                                         className="overflow-hidden"
                                                     >
                                                         <div className="ml-4 pl-4 border-l border-blue-100 my-1.5 space-y-1">
-                                                            {item.submenu?.map((sub: any) => (
-                                                                <Link
-                                                                    key={sub.href || sub.title}
-                                                                    href={sub.href || "#"}
-                                                                    className={cn(
-                                                                        "flex items-center px-4 py-2.5 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all hover:bg-blue-50 hover:text-blue-700",
-                                                                        pathname === sub.href ? "bg-blue-50 text-blue-700 border-l-2 border-blue-600 rounded-l-none" : "text-slate-500"
-                                                                    )}
-                                                                >
-                                                                    {sub.title}
-                                                                </Link>
-                                                            ))}
+                                                            {item.submenu?.map((sub: any) => {
+                                                                const hasSub = sub.submenu && sub.submenu.length > 0;
+                                                                const isOpen = openSubmenus[sub.title];
+                                                                const SubIcon = sub.icon;
+
+                                                                if (hasSub) {
+                                                                    return (
+                                                                        <div key={sub.title} className="space-y-1">
+                                                                            <button
+                                                                                onClick={() => toggleSubmenu(sub.title)}
+                                                                                className={cn(
+                                                                                    "flex items-center justify-between w-full px-4 py-2 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all hover:bg-blue-50",
+                                                                                    isOpen ? "text-blue-700 bg-blue-50/50" : "text-slate-500"
+                                                                                )}
+                                                                            >
+                                                                                <div className="flex items-center gap-2">
+                                                                                    {SubIcon && <SubIcon className="h-3 w-3" />}
+                                                                                    <span>{sub.title}</span>
+                                                                                </div>
+                                                                                <ChevronRight className={cn("h-3 w-3 transition-transform", isOpen && "rotate-90")} />
+                                                                            </button>
+                                                                            <AnimatePresence initial={false}>
+                                                                                {isOpen && (
+                                                                                    <motion.div
+                                                                                        initial={{ opacity: 0, height: 0 }}
+                                                                                        animate={{ opacity: 1, height: "auto" }}
+                                                                                        exit={{ opacity: 0, height: 0 }}
+                                                                                        className="ml-3 pl-3 border-l border-blue-50 space-y-1 overflow-hidden"
+                                                                                    >
+                                                                                        {sub.submenu.map((ss: any) => (
+                                                                                            <Link
+                                                                                                key={ss.href}
+                                                                                                href={ss.href}
+                                                                                                className={cn(
+                                                                                                    "flex items-center px-3 py-2 text-[9px] font-bold uppercase tracking-tight rounded-md transition-all hover:bg-blue-50/50 hover:text-blue-600",
+                                                                                                    pathname === ss.href ? "text-blue-600 font-extrabold" : "text-slate-400"
+                                                                                                )}
+                                                                                            >
+                                                                                                {ss.title}
+                                                                                            </Link>
+                                                                                        ))}
+                                                                                    </motion.div>
+                                                                                )}
+                                                                            </AnimatePresence>
+                                                                        </div>
+                                                                    );
+                                                                }
+
+                                                                return (
+                                                                    <Link
+                                                                        key={sub.href || sub.title}
+                                                                        href={sub.href || "#"}
+                                                                        className={cn(
+                                                                            "flex items-center px-4 py-2.5 text-[10px] font-bold uppercase tracking-wide rounded-lg transition-all hover:bg-blue-50 hover:text-blue-700",
+                                                                            pathname === sub.href ? "bg-blue-50 text-blue-700 border-l-2 border-blue-600 rounded-l-none" : "text-slate-500"
+                                                                        )}
+                                                                    >
+                                                                        {sub.title}
+                                                                    </Link>
+                                                                );
+                                                            })}
                                                         </div>
                                                     </motion.div>
                                                 )}
@@ -424,19 +517,12 @@ export function Sidebar({ className }: SidebarProps) {
                 </ScrollArea>
 
                 <div className="p-4 border-t">
-                    <Button variant="ghost" className={cn("w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive", isCollapsed && "justify-center px-0")}>
+                    <Button variant="ghost" className={cn("w-full justify-start gap-3 text-destructive hover:bg-destructive/10 hover:text-destructive", (isCollapsed && !isMobileOpen) && "justify-center px-0")}>
                         <LogOut className="h-4 w-4" />
-                        {!isCollapsed && <span className="uppercase text-xs font-semibold">Sair</span>}
+                        {(!isCollapsed || isMobileOpen) && <span className="uppercase text-xs font-semibold">Sair</span>}
                     </Button>
                 </div>
             </motion.div>
-
-            {/* Mobile Sidebar Trigger */}
-            <div className="lg:hidden fixed bottom-4 right-4 z-50">
-                <Button size="icon" className="h-12 w-12 rounded-full shadow-lg" onClick={() => setIsMobileOpen(true)}>
-                    <Menu className="h-6 w-6" />
-                </Button>
-            </div>
         </>
     );
 }

@@ -6,9 +6,6 @@ import {
     Settings,
     Users,
     TrendingUp,
-    ShieldCheck,
-    Search,
-    Filter,
     Plus,
     Building2,
     Layout
@@ -21,8 +18,6 @@ import {
     CardDescription
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 
 const container = {
     hidden: { opacity: 0 },

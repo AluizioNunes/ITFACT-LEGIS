@@ -3,12 +3,10 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-    HelpCircle,
     Book,
     Video,
     MessageSquare,
     Search,
-    FileText,
     ExternalLink,
     Terminal,
     MessageCircle,
@@ -58,7 +56,8 @@ export default function AjudaPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     if (!mounted) return null;

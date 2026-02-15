@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -17,7 +17,7 @@ export class VotacoesService {
         });
     }
 
-    async registrarVoto(votacaoId: string, data: { vereadorId: string; escolha: string }) {
+    async registrarVoto(votacaoId: string, data: { parlamentarId: string; escolha: string }) {
         const votacao = await this.prisma.votacao.findUnique({
             where: { id: votacaoId },
         });
@@ -25,7 +25,7 @@ export class VotacoesService {
 
         // Check if vote already exists
         const existingVoto = await this.prisma.voto.findFirst({
-            where: { votacaoId, vereadorId: data.vereadorId },
+            where: { votacaoId, parlamentarId: data.parlamentarId },
         });
 
         if (existingVoto) {
@@ -38,7 +38,7 @@ export class VotacoesService {
         return this.prisma.voto.create({
             data: {
                 votacaoId,
-                vereadorId: data.vereadorId,
+                parlamentarId: data.parlamentarId,
                 escolha: data.escolha,
             },
         });

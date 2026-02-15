@@ -9,7 +9,7 @@ import {
     DialogTrigger,
     DialogFooter,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 import { ReactNode } from "react";
 
 interface GenericModalProps {
@@ -22,6 +22,8 @@ interface GenericModalProps {
     children?: ReactNode;
     footer?: ReactNode;
     className?: string;
+    headerColor?: string;
+    size?: "default" | "xl" | "full";
 }
 
 export function GenericModal({
@@ -34,12 +36,20 @@ export function GenericModal({
     children,
     footer,
     className,
+    headerColor = "var(--color-primary)",
+    size = "default",
 }: GenericModalProps) {
     const handleOpenChange = (open: boolean) => {
         onOpenChange?.(open);
         if (!open && onClose) {
             onClose();
         }
+    };
+
+    const sizeClasses = {
+        default: "max-w-md",
+        xl: "max-w-6xl w-[90vw]",
+        full: "max-w-[98vw] w-[98vw] h-[95vh]",
     };
 
     return (
@@ -49,16 +59,23 @@ export function GenericModal({
                     {trigger}
                 </DialogTrigger>
             )}
-            <DialogContent className={className}>
-                <DialogHeader>
-                    <DialogTitle className="uppercase font-bold text-primary">{title}</DialogTitle>
-                    {description && <DialogDescription>{description}</DialogDescription>}
+            <DialogContent className={cn(
+                "rounded-none p-0 overflow-hidden border-none",
+                sizeClasses[size],
+                className
+            )}>
+                <DialogHeader className="p-4 text-white" style={{ backgroundColor: headerColor }}>
+                    <DialogTitle className="uppercase font-bold text-base tracking-wider">{title}</DialogTitle>
+                    {description && <DialogDescription className="text-white/80 text-xs italic">{description}</DialogDescription>}
                 </DialogHeader>
-                <div className="grid gap-4 py-4 max-h-[80vh] overflow-y-auto pr-2">
+                <div className={cn(
+                    "grid gap-4 p-6 overflow-y-auto pr-4 scrollbar-thin",
+                    size === "full" ? "h-full" : "max-h-[80vh]"
+                )}>
                     {children}
                 </div>
                 {footer && (
-                    <DialogFooter>
+                    <DialogFooter className="p-4 border-t bg-slate-50">
                         {footer}
                     </DialogFooter>
                 )}

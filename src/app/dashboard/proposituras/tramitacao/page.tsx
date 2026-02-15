@@ -2,17 +2,11 @@
 
 import { motion } from "framer-motion";
 import {
-    LineChart,
-    Line,
     XAxis,
     YAxis,
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    BarChart,
-    Bar,
-    Cell,
-    Legend,
     AreaChart,
     Area
 } from "recharts";
@@ -302,8 +296,8 @@ export default function PropositurasTramitacaoPage() {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <span className={`text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full ${item.status === 'Atrasado' ? 'bg-rose-100 text-rose-600' :
-                                                        item.status === 'Em Análise' ? 'bg-blue-100 text-blue-600' :
-                                                            'bg-amber-100 text-amber-600'
+                                                    item.status === 'Em Análise' ? 'bg-blue-100 text-blue-600' :
+                                                        'bg-amber-100 text-amber-600'
                                                     }`}>
                                                     {item.status}
                                                 </span>

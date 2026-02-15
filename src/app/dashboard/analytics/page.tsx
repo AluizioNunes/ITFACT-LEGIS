@@ -2,8 +2,8 @@
 
 import React from 'react';
 import {
-    BarChart3, TrendingUp, Clock, Users, FileText, CheckCircle2,
-    XCircle, Gavel, ArrowUpRight, ArrowDownRight, Sparkles, Activity
+    BarChart3, Clock, Users, FileText, CheckCircle2,
+    Gavel, ArrowUpRight, ArrowDownRight, Sparkles
 } from 'lucide-react';
 
 const metricas = {

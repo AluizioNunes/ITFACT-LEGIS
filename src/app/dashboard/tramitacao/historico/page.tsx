@@ -8,15 +8,12 @@ import {
     ArrowRight,
     User,
     Building2,
-    FileText,
-    CheckCircle2,
     AlertCircle,
     Calendar,
     Timer,
     ArrowRightLeft
 } from "lucide-react";
-import { format, formatDistance } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { format } from "date-fns";
 
 // Mock data reflecting the new Prisma schema
 const mockHistory = [
@@ -67,7 +64,7 @@ export default function TramitacaoHistoricoPage() {
             </div>
 
             <div className="grid gap-6">
-                {mockHistory.map((item, index) => (
+                {mockHistory.map((item) => (
                     <Card key={item.id} className="relative overflow-hidden border-l-4 border-l-primary shadow-lg hover:shadow-xl transition-shadow">
                         <CardHeader className="bg-muted/30 pb-4">
                             <div className="flex justify-between items-start">
@@ -186,7 +183,7 @@ export default function TramitacaoHistoricoPage() {
                                     <div className="space-y-1">
                                         <p className="text-[10px] uppercase font-bold text-muted-foreground">Observações</p>
                                         <p className="text-xs text-muted-foreground leading-relaxed italic">
-                                            "{item.observacao || "Nenhuma observação registrada."}"
+                                            &quot;{item.observacao || "Nenhuma observação registrada."}&quot;
                                         </p>
                                     </div>
                                 </div>

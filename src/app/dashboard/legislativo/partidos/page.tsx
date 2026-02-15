@@ -4,7 +4,7 @@ import GenericListPage from "@/components/layout/GenericListPage";
 import { DataTable } from "@/components/ui/data-table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Plus, Building2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import React from "react";
 import { ColumnDef } from "@tanstack/react-table";
 

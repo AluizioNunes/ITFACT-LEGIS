@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
     AlertTriangle, Copy, ExternalLink, X, Sparkles, Search,
-    FileText, Building2, ArrowRight, Shield, Loader2, CheckCircle2, XCircle
+    Building2, ArrowRight, Shield, Loader2, CheckCircle2, XCircle
 } from 'lucide-react';
 
 interface SimilarDocument {
@@ -79,7 +79,7 @@ export default function SimilarityAlert({
             } else {
                 onClear?.();
             }
-        } catch (err) {
+        } catch {
             setError('Motor semântico indisponível');
             setResult(null);
         } finally {
@@ -132,10 +132,10 @@ export default function SimilarityAlert({
             {/* Results */}
             {result && !loading && (
                 <div className={`rounded-xl border overflow-hidden ${result.has_duplicates
-                        ? 'bg-red-500/5 border-red-500/30'
-                        : result.total_candidatos > 0
-                            ? 'bg-amber-500/5 border-amber-500/30'
-                            : 'bg-emerald-500/5 border-emerald-500/30'
+                    ? 'bg-red-500/5 border-red-500/30'
+                    : result.total_candidatos > 0
+                        ? 'bg-amber-500/5 border-amber-500/30'
+                        : 'bg-emerald-500/5 border-emerald-500/30'
                     }`}>
                     {/* Header */}
                     <div className="flex items-center justify-between p-4 border-b border-zinc-800/50">
@@ -179,7 +179,7 @@ export default function SimilarityAlert({
                     {/* Similar Documents */}
                     {result.resultados.length > 0 && (
                         <div className="divide-y divide-zinc-800/50">
-                            {result.resultados.map((doc, idx) => (
+                            {result.resultados.map((doc) => (
                                 <div key={doc.documento_id} className={`p-4 hover:bg-zinc-800/20 transition-colors ${doc.is_duplicate ? 'bg-red-500/5' : ''}`}>
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">

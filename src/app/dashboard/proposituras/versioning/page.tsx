@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GitBranch, GitCommit, GitMerge, History, ArrowLeftRight, RotateCcw, Plus, Eye, FileText, Clock } from "lucide-react";
+import { GitBranch, GitMerge, History, ArrowLeftRight, RotateCcw } from "lucide-react";
 
 const mockVersoes = [
     { numero: 4, descricao: "Aprovação em 2ª Discussão — texto final", autor: "CCJ / Ver. Maria Lima", data: "10/02/2026 16:30", linhasAdd: 2, linhasRem: 5, status: "ATUAL" },

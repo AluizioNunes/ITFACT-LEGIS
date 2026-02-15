@@ -40,7 +40,7 @@ export class WorkflowService {
         PROMULGACAO: 2,           // 48 horas
     };
 
-    async avancarFase(proposituraId: string, novaFase: string, observacao?: string) {
+    async avancarFase(proposituraId: string, novaFase: string, _observacao?: string) { // eslint-disable-line @typescript-eslint/no-unused-vars
         const propositura = await this.prisma.propositura.findUnique({
             where: { id: proposituraId },
         });

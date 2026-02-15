@@ -12,7 +12,7 @@ export class PartidosService {
     async findAll() {
         return this.prisma.partido.findMany({
             include: {
-                _count: { select: { vereadores: true } },
+                _count: { select: { parlamentares: true } },
             },
         });
     }
@@ -21,7 +21,7 @@ export class PartidosService {
         const partido = await this.prisma.partido.findUnique({
             where: { id },
             include: {
-                vereadores: true,
+                parlamentares: true,
                 bancadas: true,
             },
         });

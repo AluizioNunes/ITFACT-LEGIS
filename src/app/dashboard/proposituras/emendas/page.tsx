@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FileText, Plus, Filter, CheckCircle2, XCircle, Clock, Eye, Sparkles } from 'lucide-react';
+import { FileText, Plus, Eye, Sparkles } from 'lucide-react';
 
 const TIPOS = ['SUPRESSIVA', 'SUBSTITUTIVA', 'ADITIVA', 'MODIFICATIVA'] as const;
 const STATUS_COLORS = {

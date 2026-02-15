@@ -68,7 +68,6 @@ export class ChatGateway implements OnGatewayConnection, OnGatewayDisconnect {
             orgaoId?: string;
             departamentoId?: string;
         },
-        @ConnectedSocket() client: Socket,
     ) {
         const savedMessage = await this.chatService.saveMessage(
             data.content,

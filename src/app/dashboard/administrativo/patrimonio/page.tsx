@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import {
     Package,
     HardDrive,
-    Truck,
     Building,
     Plus,
     Search,

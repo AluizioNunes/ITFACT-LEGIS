@@ -2,10 +2,10 @@
 
 import React, { useState } from 'react';
 import {
-    MessageCircle, Gavel, Users, FileText, CheckCircle2, XCircle,
-    Clock, ArrowRight, ChevronDown, Filter, Search, Sparkles,
-    ThumbsUp, ThumbsDown, AlertTriangle, Plus
+    MessageCircle, Gavel, Users, Clock,
+    ThumbsUp, ThumbsDown, Plus
 } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 const mockDiscussoes = [
     {
@@ -99,8 +99,8 @@ export default function DiscussoesPage() {
                         key={s}
                         onClick={() => setFilter(s)}
                         className={`px-3 py-2 text-xs rounded-lg border transition-all ${filter === s
-                                ? 'bg-orange-500/20 border-orange-500/40 text-orange-300'
-                                : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'
+                            ? 'bg-orange-500/20 border-orange-500/40 text-orange-300'
+                            : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'
                             }`}
                     >
                         {s === 'TODOS' ? 'Todas' : STATUS_COLORS[s]?.label || s}
@@ -129,7 +129,7 @@ export default function DiscussoesPage() {
                                     <p className="text-sm text-zinc-300">{disc.ementa}</p>
                                     <div className="flex items-center gap-4 mt-3 text-xs text-zinc-500">
                                         <span className="flex items-center gap-1"><Gavel className="w-3.5 h-3.5" />{disc.sessao}</span>
-                                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{new Date(disc.data).toLocaleDateString('pt-BR')}</span>
+                                        <span className="flex items-center gap-1"><Clock className="w-3.5 h-3.5" />{formatDate(disc.data)}</span>
                                         <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{disc.oradores} oradores</span>
                                     </div>
                                 </div>

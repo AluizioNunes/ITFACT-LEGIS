@@ -1,0 +1,312 @@
+
+> itfact-legis-frontend@1.0.0 lint
+> eslint .
+
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\auth\auth.service.ts
+  16:21  warning  'password' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\bancadas\bancadas.service.ts
+  1:22  warning  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\chat\chat.gateway.ts
+  71:28  warning  'client' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\deduplicacao\deduplicacao.controller.ts
+  1:39  warning  'Query' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\deduplicacao\deduplicacao.service.ts
+  1:22  warning  'HttpException' is defined but never used  @typescript-eslint/no-unused-vars
+  1:37  warning  'HttpStatus' is defined but never used     @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\events\events.gateway.ts
+  22:28  warning  'client' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\pareceres\pareceres.service.ts
+  1:22  warning  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\sessao-ao-vivo\sessao-ao-vivo.gateway.ts
+  3:18  warning  'ConnectedSocket' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\versioning\versioning.service.ts
+  50:28  warning  'proposituraId' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\vetos\vetos.service.ts
+  1:22  warning  'NotFoundException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\votacoes\votacoes.service.ts
+  1:41  warning  'BadRequestException' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\workflow\workflow.service.ts
+  43:64  warning  'observacao' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\test\e2e\roadmap.e2e-spec.ts
+   1:10  warning  'Test' is defined but never used                @typescript-eslint/no-unused-vars
+   1:16  warning  'TestingModule' is defined but never used       @typescript-eslint/no-unused-vars
+   3:13  warning  'request' is defined but never used             @typescript-eslint/no-unused-vars
+  10:9   warning  'app' is defined but never used                 @typescript-eslint/no-unused-vars
+  13:11  warning  'mockToken' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\chat\page.tsx
+   10:34  warning  'AvatarImage' is defined but never used  @typescript-eslint/no-unused-vars
+   13:16  warning  'TabsContent' is defined but never used  @typescript-eslint/no-unused-vars
+  139:49  warning  'i' is defined but never used            @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\gerencia\orgaos\columns.tsx
+  4:26  warning  'ArrowUpDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\gerencia\tipos-documento\columns.tsx
+  4:26  warning  'ArrowUpDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\legislativo\licencas\page.tsx
+  5:47  warning  'AlertTriangle' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\legislativo\mocoes\page.tsx
+  4:23  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  4:37  warning  'XCircle' is defined but never used       @typescript-eslint/no-unused-vars
+  4:46  warning  'Filter' is defined but never used        @typescript-eslint/no-unused-vars
+  4:54  warning  'Search' is defined but never used        @typescript-eslint/no-unused-vars
+  4:62  warning  'FileText' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\legislativo\orcamento\page.tsx
+   3:17  warning  'useState' is defined but never used      @typescript-eslint/no-unused-vars
+   9:5   warning  'PiggyBank' is defined but never used     @typescript-eslint/no-unused-vars
+  10:5   warning  'FileCheck' is defined but never used     @typescript-eslint/no-unused-vars
+  12:5   warning  'TrendingDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\legislativo\partidos\page.tsx
+  7:16  warning  'Building2' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\legislativo\tce-am\page.tsx
+  4:30  warning  'AlertTriangle' is defined but never used  @typescript-eslint/no-unused-vars
+  4:45  warning  'CheckCircle' is defined but never used    @typescript-eslint/no-unused-vars
+  4:58  warning  'Clock' is defined but never used          @typescript-eslint/no-unused-vars
+  4:75  warning  'ExternalLink' is defined but never used   @typescript-eslint/no-unused-vars
+  4:99  warning  'ChevronRight' is defined but never used   @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\ouvidoria\page.tsx
+   8:5  warning  'ThumbsUp' is defined but never used    @typescript-eslint/no-unused-vars
+   9:5  warning  'ThumbsDown' is defined but never used  @typescript-eslint/no-unused-vars
+  11:5  warning  'Users' is defined but never used       @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\page.tsx
+   12:5  warning  'LineChart' is defined but never used           @typescript-eslint/no-unused-vars
+   25:5  warning  'Clock' is defined but never used               @typescript-eslint/no-unused-vars
+   26:5  warning  'CheckCircle2' is defined but never used        @typescript-eslint/no-unused-vars
+   27:5  warning  'TrendingUp' is defined but never used          @typescript-eslint/no-unused-vars
+   28:5  warning  'Users' is defined but never used               @typescript-eslint/no-unused-vars
+   32:5  warning  'Search' is defined but never used              @typescript-eslint/no-unused-vars
+  101:7  warning  'container' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  111:7  warning  'item' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\perfil\page.tsx
+   7:5  warning  'Mail' is defined but never used          @typescript-eslint/no-unused-vars
+   8:5  warning  'Phone' is defined but never used         @typescript-eslint/no-unused-vars
+   9:5  warning  'MapPin' is defined but never used        @typescript-eslint/no-unused-vars
+  14:5  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\proposituras\comissoes\ccjr\page.tsx
+  12:5  warning  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+  14:5  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\proposituras\page.tsx
+  22:5  warning  'Plus' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\proposituras\redacao-final\page.tsx
+  6:43  warning  'Search' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\proposituras\vetos\page.tsx
+  4:30  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\proposituras\workflow\page.tsx
+  5:64  warning  'XCircle' is defined but never used  @typescript-eslint/no-unused-vars
+  7:11  warning  'Pause' is defined but never used    @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\protocolos\entrada\page.tsx
+   6:5  warning  'BarChart' is defined but never used       @typescript-eslint/no-unused-vars
+   7:5  warning  'Bar' is defined but never used            @typescript-eslint/no-unused-vars
+   8:5  warning  'XAxis' is defined but never used          @typescript-eslint/no-unused-vars
+   9:5  warning  'YAxis' is defined but never used          @typescript-eslint/no-unused-vars
+  10:5  warning  'CartesianGrid' is defined but never used  @typescript-eslint/no-unused-vars
+  19:5  warning  'ArrowUpRight' is defined but never used   @typescript-eslint/no-unused-vars
+  28:5  warning  'Users' is defined but never used          @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\protocolos\page.tsx
+   6:5  warning  'BarChart' is defined but never used        @typescript-eslint/no-unused-vars
+   7:5  warning  'Bar' is defined but never used             @typescript-eslint/no-unused-vars
+  24:5  warning  'ArrowRightLeft' is defined but never used  @typescript-eslint/no-unused-vars
+  29:5  warning  'ShieldCheck' is defined but never used     @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\protocolos\pesquisa\page.tsx
+   8:5  warning  'Calendar' is defined but never used         @typescript-eslint/no-unused-vars
+  21:5  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  22:5  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  23:5  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\protocolos\saida\page.tsx
+  13:5   warning  'PieChart' is defined but never used      @typescript-eslint/no-unused-vars
+  14:5   warning  'Pie' is defined but never used           @typescript-eslint/no-unused-vars
+  15:5   warning  'LineChart' is defined but never used     @typescript-eslint/no-unused-vars
+  16:5   warning  'Line' is defined but never used          @typescript-eslint/no-unused-vars
+  20:5   warning  'ArrowUpRight' is defined but never used  @typescript-eslint/no-unused-vars
+  24:5   warning  'Building' is defined but never used      @typescript-eslint/no-unused-vars
+  25:5   warning  'FileText' is defined but never used      @typescript-eslint/no-unused-vars
+  26:5   warning  'Search' is defined but never used        @typescript-eslint/no-unused-vars
+  27:5   warning  'Filter' is defined but never used        @typescript-eslint/no-unused-vars
+  40:10  warning  'Input' is defined but never used         @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sessoes\columns.tsx
+  4:26  warning  'ArrowUpDown' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sessoes\painel\page.tsx
+  4:10  warning  'Users' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sessoes\presenca\page.tsx
+  3:17  warning  'useState' is defined but never used       @typescript-eslint/no-unused-vars
+  5:5   warning  'Users' is defined but never used          @typescript-eslint/no-unused-vars
+  5:26  warning  'XCircle' is defined but never used        @typescript-eslint/no-unused-vars
+  5:42  warning  'Search' is defined but never used         @typescript-eslint/no-unused-vars
+  5:50  warning  'Filter' is defined but never used         @typescript-eslint/no-unused-vars
+  6:5   warning  'AlertTriangle' is defined but never used  @typescript-eslint/no-unused-vars
+  6:32  warning  'BarChart3' is defined but never used      @typescript-eslint/no-unused-vars
+  6:54  warning  'UserX' is defined but never used          @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sessoes\tribuna\page.tsx
+  3:17  warning  'useState' is defined but never used      @typescript-eslint/no-unused-vars
+  4:22  warning  'Clock' is defined but never used         @typescript-eslint/no-unused-vars
+  4:35  warning  'CheckCircle2' is defined but never used  @typescript-eslint/no-unused-vars
+  4:64  warning  'Calendar' is defined but never used      @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sistema\casa\page.tsx
+  23:5  warning  'TrendingUp' is defined but never used  @typescript-eslint/no-unused-vars
+  25:5  warning  'FileText' is defined but never used    @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sistema\departamentos\page.tsx
+   9:5   warning  'ShieldCheck' is defined but never used  @typescript-eslint/no-unused-vars
+  10:5   warning  'Search' is defined but never used       @typescript-eslint/no-unused-vars
+  11:5   warning  'Filter' is defined but never used       @typescript-eslint/no-unused-vars
+  24:10  warning  'Input' is defined but never used        @typescript-eslint/no-unused-vars
+  25:10  warning  'Badge' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sistema\gabinetes\page.tsx
+   9:5   warning  'ShieldCheck' is defined but never used  @typescript-eslint/no-unused-vars
+  10:5   warning  'Search' is defined but never used       @typescript-eslint/no-unused-vars
+  11:5   warning  'Filter' is defined but never used       @typescript-eslint/no-unused-vars
+  24:10  warning  'Input' is defined but never used        @typescript-eslint/no-unused-vars
+  25:10  warning  'Badge' is defined but never used        @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sistema\integracoes\page.tsx
+    6:15  warning  'Server' is defined but never used               @typescript-eslint/no-unused-vars
+    6:23  warning  'Cloud' is defined but never used                @typescript-eslint/no-unused-vars
+    7:13  warning  'Key' is defined but never used                  @typescript-eslint/no-unused-vars
+    7:55  warning  'X' is defined but never used                    @typescript-eslint/no-unused-vars
+    9:15  warning  'Star' is defined but never used                 @typescript-eslint/no-unused-vars
+    9:28  warning  'ExternalLink' is defined but never used         @typescript-eslint/no-unused-vars
+    9:53  warning  'Copy' is defined but never used                 @typescript-eslint/no-unused-vars
+  318:22  warning  'error' is defined but never used                @typescript-eslint/no-unused-vars
+  345:18  warning  'error' is defined but never used                @typescript-eslint/no-unused-vars
+  619:27  warning  'installRes' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sistema\permissoes\page.tsx
+  11:5   warning  'Search' is defined but never used        @typescript-eslint/no-unused-vars
+  12:5   warning  'Filter' is defined but never used        @typescript-eslint/no-unused-vars
+  13:5   warning  'ArrowUpRight' is defined but never used  @typescript-eslint/no-unused-vars
+  28:10  warning  'Input' is defined but never used         @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\tramitacao\historico\page.tsx
+  11:5   warning  'FileText' is defined but never used        @typescript-eslint/no-unused-vars
+  12:5   warning  'CheckCircle2' is defined but never used    @typescript-eslint/no-unused-vars
+  18:18  warning  'formatDistance' is defined but never used  @typescript-eslint/no-unused-vars
+  19:10  warning  'ptBR' is defined but never used            @typescript-eslint/no-unused-vars
+  70:41  warning  'index' is defined but never used           @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\AssistantWidget.tsx
+    7:5   warning  'MessageSquare' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   12:5   warning  'User' is defined but never used                                                                                        @typescript-eslint/no-unused-vars
+   14:5   warning  'Layers' is defined but never used                                                                                      @typescript-eslint/no-unused-vars
+   15:5   warning  'Globe' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+   16:5   warning  'Building' is defined but never used                                                                                    @typescript-eslint/no-unused-vars
+   17:5   warning  'MessageCircle' is defined but never used                                                                               @typescript-eslint/no-unused-vars
+   22:16  warning  'CardContent' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   26:34  warning  'AvatarImage' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   83:8   warning  React Hook React.useCallback has a missing dependency: 'PAGE_TITLES'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  226:18  warning  'error' is defined but never used                                                                                       @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\GenericListPage.tsx
+  3:52  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\Navbar.tsx
+  12:5   warning  'DropdownMenuSub' is defined but never used         @typescript-eslint/no-unused-vars
+  13:5   warning  'DropdownMenuSubTrigger' is defined but never used  @typescript-eslint/no-unused-vars
+  14:5   warning  'DropdownMenuSubContent' is defined but never used  @typescript-eslint/no-unused-vars
+  20:10  warning  'Menu' is defined but never used                    @typescript-eslint/no-unused-vars
+  24:13  warning  'toggleSidebar' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\Sidebar.tsx
+   14:5   warning  'Scale' is defined but never used                  @typescript-eslint/no-unused-vars
+   17:5   warning  'Library' is defined but never used                @typescript-eslint/no-unused-vars
+   26:5   warning  'ChevronDown' is defined but never used            @typescript-eslint/no-unused-vars
+   34:5   warning  'MessageCircle' is defined but never used          @typescript-eslint/no-unused-vars
+  235:12  warning  'isMobileOpen' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\ArquivarModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\CaixaModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\CasaLegislativaModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\MinutaModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\OrgaoModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\ProposituraModal.tsx
+  15:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\ProtocoloEntradaModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\RecebimentoModal.tsx
+  5:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\SessaoPlenariaModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\TipoDocumentoModal.tsx
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\TramitarDocumentoModal.tsx
+  5:10  warning  'Input' is defined but never used  @typescript-eslint/no-unused-vars
+  6:10  warning  'Label' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\semantic\SimilarityAlert.tsx
+    6:5   warning  'FileText' is defined but never used  @typescript-eslint/no-unused-vars
+   82:18  warning  'err' is defined but never used       @typescript-eslint/no-unused-vars
+  182:58  warning  'idx' is defined but never used       @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\ui\data-table.tsx
+  41:19  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\ui\data-table.tsx:41:19
+  39 |     const [columnFilters, setColumnFilters] = React.useState<any>([])
+  40 |
+> 41 |     const table = useReactTable({
+     |                   ^^^^^^^^^^^^^ TanStack Table's `useReactTable()` API returns functions that cannot be memoized safely
+  42 |         data,
+  43 |         columns,
+  44 |         getCoreRowModel: getCoreRowModel(),  react-hooks/incompatible-library
+
+D:\PROJETOS\ITFACT-LEGIS\src\contexts\UIContext.tsx
+  3:54  warning  'useEffect' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\hooks\use-toast.ts
+  21:7  warning  'actionTypes' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars
+
+Ô£û 170 problems (0 errors, 170 warnings)
+

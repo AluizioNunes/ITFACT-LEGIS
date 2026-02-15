@@ -8,9 +8,6 @@ import {
     ShieldCheck,
     Lock,
     Unlock,
-    Search,
-    Filter,
-    ArrowUpRight,
     TrendingUp,
     Key,
     UserCircle,
@@ -25,7 +22,6 @@ import {
     CardDescription
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 const mockRoles = [
@@ -54,7 +50,8 @@ export default function PermissoesPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     if (!mounted) return null;

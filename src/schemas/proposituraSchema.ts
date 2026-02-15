@@ -8,8 +8,9 @@ export const ProposituraSchema = z.object({
     ementa: z.string().min(10, "A ementa deve ter pelo menos 10 caracteres."),
     texto: z.string().min(50, "O texto deve ter pelo menos 50 caracteres."), // Rich text content usually
     dataApresentacao: z.date().default(new Date()),
-    status: z.enum(["APRESENTADO", "EM_TRAMITACAO", "APROVADO", "REJEITADO", "ARQUIVADO"]).default("APRESENTADO"),
+    status: z.enum(["MINUTA", "APRESENTADO", "EM_TRAMITACAO", "APROVADO", "REJEITADO", "ARQUIVADO"]).default("MINUTA"),
     regimeTramitacao: z.enum(["ORDINARIO", "URGENCIA", "ESPECIAL"]).default("ORDINARIO"),
+    participantes: z.array(z.string()).default([]),
 });
 
 export type ProposituraFormValues = z.infer<typeof ProposituraSchema>;

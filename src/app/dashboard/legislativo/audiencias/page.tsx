@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import {
     Users, Calendar, MapPin, Clock, FileText, Mic, Plus,
-    CheckCircle2, AlertTriangle, Search, Filter, Sparkles,
-    Video, MessageSquare, ChevronRight, Eye
+    CheckCircle2, Search, Sparkles,
+    MessageSquare, Eye
 } from 'lucide-react';
+import { formatDate, formatTime } from '@/lib/utils';
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
     AGENDADA: { label: 'Agendada', color: 'text-blue-400', bg: 'bg-blue-500/10 border-blue-500/30' },
@@ -110,8 +111,8 @@ export default function AudienciasPage() {
                             key={status}
                             onClick={() => setFiltroStatus(status)}
                             className={`px-3 py-2 text-xs rounded-lg border transition-all ${filtroStatus === status
-                                    ? 'bg-teal-500/20 border-teal-500/40 text-teal-300'
-                                    : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
+                                ? 'bg-teal-500/20 border-teal-500/40 text-teal-300'
+                                : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
                                 }`}
                         >
                             {status === 'TODOS' ? 'Todos' : STATUS_CONFIG[status]?.label || status}
@@ -124,7 +125,6 @@ export default function AudienciasPage() {
             <div className="grid grid-cols-2 gap-4">
                 {filtered.map((aud) => {
                     const st = STATUS_CONFIG[aud.status];
-                    const dataObj = new Date(aud.data);
                     return (
                         <div key={aud.id} className="bg-zinc-900/60 border border-zinc-800 rounded-xl overflow-hidden hover:border-zinc-700 transition-all group">
                             <div className="p-5">
@@ -154,13 +154,13 @@ export default function AudienciasPage() {
                                     <div className="flex items-center gap-2">
                                         <Calendar className="w-4 h-4 text-zinc-500" />
                                         <span className="text-xs text-zinc-400">
-                                            {dataObj.toLocaleDateString('pt-BR')}
+                                            {formatDate(aud.data)}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <Clock className="w-4 h-4 text-zinc-500" />
                                         <span className="text-xs text-zinc-400">
-                                            {dataObj.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}
+                                            {formatTime(aud.data)}
                                         </span>
                                     </div>
                                     <div className="flex items-center gap-2">

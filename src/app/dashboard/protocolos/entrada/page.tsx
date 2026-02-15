@@ -3,11 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis,
-    CartesianGrid,
     Tooltip,
     ResponsiveContainer,
     Cell,
@@ -16,7 +11,6 @@ import {
 } from "recharts";
 import {
     Inbox,
-    ArrowUpRight,
     TrendingUp,
     ShieldCheck,
     AlertCircle,
@@ -24,8 +18,7 @@ import {
     FileText,
     Search,
     Filter,
-    Calendar,
-    Users
+    Calendar
 } from "lucide-react";
 import {
     Card,
@@ -101,7 +94,8 @@ export default function ProtocolosEntradaPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     return (

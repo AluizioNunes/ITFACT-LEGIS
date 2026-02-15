@@ -9,9 +9,7 @@ import {
     FileText,
     Users,
     Calendar,
-    Clock,
     AlertCircle,
-    CheckCircle2,
     PenTool
 } from "lucide-react";
 

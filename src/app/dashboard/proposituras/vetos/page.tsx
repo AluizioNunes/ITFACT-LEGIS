@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldAlert, Clock, CheckCircle2, XCircle, Gavel, AlertTriangle, Sparkles, Calendar } from 'lucide-react';
+import { ShieldAlert, Clock, XCircle, Gavel, AlertTriangle, Sparkles, Calendar } from 'lucide-react';
 
 const mockVetos = [
     { id: '1', propositura: 'PL 91/2025', tipo: 'PARCIAL', razoes: 'Incompatibilidade com o orçamento municipal para o exercício de 2026, conforme parecer da Secretaria de Finanças.', artigosVetados: 'Art. 3º, Art. 5º §2º', dataRecebimento: '01/02/2026', prazo30dias: '03/03/2026', diasRestantes: 8, resultado: 'PENDENTE', analiseIA: 'O veto parcial tem fundamentos orçamentários. Artigos vetados representam ~40% do impacto financeiro.' },
@@ -52,15 +52,15 @@ export default function VetosPage() {
             <div className="space-y-4">
                 {mockVetos.map((veto) => (
                     <div key={veto.id} className={`bg-zinc-900/60 border rounded-xl p-6 transition-all ${veto.resultado === 'PENDENTE' && veto.diasRestantes < 0
-                            ? 'border-red-500/40 bg-red-500/5'
-                            : veto.resultado === 'PENDENTE'
-                                ? 'border-amber-500/30'
-                                : 'border-zinc-800'
+                        ? 'border-red-500/40 bg-red-500/5'
+                        : veto.resultado === 'PENDENTE'
+                            ? 'border-amber-500/30'
+                            : 'border-zinc-800'
                         }`}>
                         <div className="flex items-center justify-between">
                             <div className="flex items-center gap-4">
                                 <div className={`p-2.5 rounded-xl ${veto.resultado === 'PENDENTE' ? 'bg-amber-500/20' :
-                                        veto.resultado === 'REJEITADO' ? 'bg-emerald-500/20' : 'bg-zinc-500/20'
+                                    veto.resultado === 'REJEITADO' ? 'bg-emerald-500/20' : 'bg-zinc-500/20'
                                     }`}>
                                     {veto.tipo === 'TOTAL' ? <XCircle className={`w-5 h-5 ${veto.resultado === 'PENDENTE' ? 'text-amber-400' : veto.resultado === 'REJEITADO' ? 'text-emerald-400' : 'text-zinc-400'
                                         }`} /> : <ShieldAlert className={`w-5 h-5 ${veto.resultado === 'PENDENTE' ? 'text-amber-400' : veto.resultado === 'REJEITADO' ? 'text-emerald-400' : 'text-zinc-400'
@@ -77,8 +77,8 @@ export default function VetosPage() {
                             </div>
                             <div className="flex flex-col items-end gap-2">
                                 <span className={`text-xs px-3 py-1 rounded-full font-medium ${veto.resultado === 'PENDENTE' ? 'bg-amber-500/20 text-amber-400' :
-                                        veto.resultado === 'REJEITADO' ? 'bg-emerald-500/20 text-emerald-400' :
-                                            'bg-zinc-500/20 text-zinc-400'
+                                    veto.resultado === 'REJEITADO' ? 'bg-emerald-500/20 text-emerald-400' :
+                                        'bg-zinc-500/20 text-zinc-400'
                                     }`}>{veto.resultado}</span>
                                 {veto.resultado === 'PENDENTE' && (
                                     <span className={`text-xs ${veto.diasRestantes < 0 ? 'text-red-400 font-bold' : 'text-zinc-400'}`}>

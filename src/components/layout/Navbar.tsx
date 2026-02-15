@@ -1,7 +1,9 @@
 "use client";
 
-import { Bell, Search, User, Moon, Sun, Monitor } from "lucide-react";
+import { Bell, Search, User, Moon, Sun, Monitor, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useUI } from "@/contexts/UIContext";
+import { cn } from "@/lib/utils";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -9,19 +11,15 @@ import {
     DropdownMenuLabel,
     DropdownMenuSeparator,
     DropdownMenuTrigger,
-    DropdownMenuSub,
-    DropdownMenuSubTrigger,
-    DropdownMenuSubContent,
 } from "@/components/ui/dropdown-menu";
 import { useTheme } from "next-themes";
 import * as React from "react";
 
-import { useUI } from "@/contexts/UIContext";
-import { Menu } from "lucide-react";
+
 
 export function Navbar() {
     const { setTheme } = useTheme();
-    const { toggleSidebar } = useUI();
+    const { toggleSidebar, setIsMobileOpen } = useUI();
     const [mounted, setMounted] = React.useState(false);
 
     React.useEffect(() => {
@@ -47,6 +45,22 @@ export function Navbar() {
         <header className="sticky top-0 z-40 w-full border-b border-border/40 bg-background/80 backdrop-blur-md transition-all duration-300 shadow-sm">
             <div className="container flex h-14 items-center gap-4 px-6 max-w-full">
                 <div className="flex items-center gap-4">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        className="text-blue-900 hover:bg-blue-50 transition-all rounded-xl"
+                        onClick={() => {
+                            // On mobile, setIsMobileOpen(true)
+                            // On desktop, toggleSidebar()
+                            if (window.innerWidth < 1024) {
+                                setIsMobileOpen(true);
+                            } else {
+                                toggleSidebar();
+                            }
+                        }}
+                    >
+                        <Menu className="h-5 w-5" />
+                    </Button>
                     <h2 className="text-sm font-bold text-blue-900 dark:text-blue-100 hidden lg:block tracking-tight uppercase">
                         ITFACT LEGIS - SISTEMA DE GESTÃO ADMINISTRATIVA E LEGISLATIVA
                     </h2>

@@ -3,8 +3,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import {
-    BarChart,
-    Bar,
     XAxis,
     YAxis,
     CartesianGrid,
@@ -21,12 +19,10 @@ import {
     Search,
     FileText,
     Calendar,
-    ArrowRightLeft,
     Hash,
     Filter,
     ArrowUpRight,
     TrendingUp,
-    ShieldCheck,
     AlertCircle,
     Inbox,
     Send
@@ -87,7 +83,8 @@ export default function ProtocolosPage() {
     const [mounted, setMounted] = useState(false);
 
     useEffect(() => {
-        setMounted(true);
+        const handle = requestAnimationFrame(() => setMounted(true));
+        return () => cancelAnimationFrame(handle);
     }, []);
 
     return (

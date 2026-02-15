@@ -1,47 +1,103 @@
 "use client";
 
 import React from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
 import {
-    Users,
-    Gavel,
-    Calendar,
     Award,
     Plus,
-    Scale,
-    Activity,
     History
 } from "lucide-react";
-import {
-    ResponsiveContainer,
-    RadialBarChart,
-    RadialBar,
-    Legend,
-    Tooltip,
-    BarChart,
-    Bar,
-    XAxis,
-    YAxis
-} from "recharts";
 
-const compositionData = [
-    { name: "Cargos Ocupados", count: 7, fill: "#2563eb" },
-    { name: "Cargos Vagos", count: 3, fill: "#e2e8f0" },
-];
-
-const activityData = [
-    { name: "Reuniões", total: 12 },
-    { day: "Seg", total: 4 },
-    { day: "Ter", total: 6 },
-    { day: "Qua", total: 2 },
-    { day: "Qui", total: 8 },
-    { day: "Sex", total: 3 },
+// Mock Data for Mesa Diretora Composition
+const mesaMembers = [
+    {
+        cargo: "PRESIDENTE",
+        parlamentar: "Ver. Caio André",
+        partido: "UNIAO",
+        foto: "/placeholder-president.jpg", // Replace with real URL
+        biografia: "Presidente da Câmara Municipal de Manaus para o biênio 2023-2024.",
+        cor: "bg-blue-600"
+    },
+    {
+        cargo: "1º VICE-PRESIDENTE",
+        parlamentar: "Ver. Yomara Lins",
+        partido: "PRTB",
+        foto: "",
+        biografia: "",
+        cor: "bg-blue-500"
+    },
+    {
+        cargo: "2º VICE-PRESIDENTE",
+        parlamentar: "Ver. Everton Assis",
+        partido: "UNIAO",
+        foto: "",
+        biografia: "",
+        cor: "bg-blue-500"
+    },
+    {
+        cargo: "3º VICE-PRESIDENTE",
+        parlamentar: "Ver. Demétrio",
+        partido: "PSDB",
+        foto: "",
+        biografia: "",
+        cor: "bg-blue-500"
+    },
+    {
+        cargo: "SECRETÁRIO GERAL",
+        parlamentar: "Ver. João Carlos",
+        partido: "REPUBLICANOS",
+        foto: "",
+        biografia: "",
+        cor: "bg-slate-600"
+    },
+    {
+        cargo: "1º SECRETÁRIO",
+        parlamentar: "Ver. Glória Carratte",
+        partido: "PL",
+        foto: "",
+        biografia: "",
+        cor: "bg-slate-500"
+    },
+    {
+        cargo: "2º SECRETÁRIO",
+        parlamentar: "Ver. Jaildo Oliveira",
+        partido: "PCdoB",
+        foto: "",
+        biografia: "",
+        cor: "bg-slate-500"
+    },
+    {
+        cargo: "3º SECRETÁRIO",
+        parlamentar: "Ver. Ivo Neto",
+        partido: "PATRIOTA",
+        foto: "",
+        biografia: "",
+        cor: "bg-slate-500"
+    },
+    {
+        cargo: "CORREGEDOR",
+        parlamentar: "Ver. Rosivaldo Cordovil",
+        partido: "PSDB",
+        foto: "",
+        biografia: "",
+        cor: "bg-indigo-600"
+    },
+    {
+        cargo: "OUVIDOR",
+        parlamentar: "Ver. Cap. Carpê",
+        partido: "REPUBLICANOS",
+        foto: "",
+        biografia: "",
+        cor: "bg-purple-600"
+    }
 ];
 
 export default function MesaDiretoraDashboard() {
     return (
-        <div className="p-6 space-y-6 bg-slate-50/50 min-h-screen">
+        <div className="p-6 space-y-8 bg-slate-50/50 min-h-screen">
             {/* Header */}
             <div className="flex justify-between items-center bg-white p-8 rounded-3xl shadow-sm border border-slate-100">
                 <div className="space-y-1">
@@ -49,11 +105,11 @@ export default function MesaDiretoraDashboard() {
                         <Award className="h-10 w-10 text-blue-800" />
                         Mesa Diretora
                     </h1>
-                    <p className="text-slate-500 font-medium">Gestão de liderança, biênios, composição administrativa e atos de presidência.</p>
+                    <p className="text-slate-500 font-medium">Composição Atual (Biênio 2023-2024)</p>
                 </div>
                 <div className="flex gap-4">
                     <Button variant="outline" className="h-14 px-8 rounded-2xl border-2 font-bold text-slate-600 gap-2">
-                        <History className="h-5 w-5" /> Histórico de Mesas
+                        <History className="h-5 w-5" /> Histórico
                     </Button>
                     <Button className="bg-blue-800 hover:bg-blue-900 text-white font-bold h-14 px-8 rounded-2xl gap-3 shadow-xl shadow-blue-200">
                         <Plus className="h-6 w-6" />
@@ -62,101 +118,38 @@ export default function MesaDiretoraDashboard() {
                 </div>
             </div>
 
-            {/* KPIs */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <Card className="rounded-3xl border-none shadow-sm bg-blue-800 text-white">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-bold uppercase opacity-80">Gestão Atual</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-black">2026-2028</div>
-                        <p className="text-[10px] mt-1 opacity-70 italic">Biênio B - Legislatura 24-28</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-3xl border-none shadow-sm bg-white">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-bold uppercase text-slate-400">Total de Membros</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-black text-slate-900">10</div>
-                        <p className="text-[10px] mt-1 text-slate-400 font-bold uppercase tracking-widest">Cargos Proporcionais</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-3xl border-none shadow-sm bg-white">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-bold uppercase text-slate-400 flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-blue-500" /> Reuniões da Mesa
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-black text-slate-900">24</div>
-                        <p className="text-[10px] mt-1 text-blue-500 font-bold uppercase tracking-widest">Realizadas em 2026</p>
-                    </CardContent>
-                </Card>
-
-                <Card className="rounded-3xl border-none shadow-sm bg-white">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-xs font-bold uppercase text-slate-400 flex items-center gap-2">
-                            <Scale className="h-4 w-4 text-slate-500" /> Atos de Mesa
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-3xl font-black text-slate-900">156</div>
-                        <p className="text-[10px] mt-1 text-slate-400 font-bold uppercase tracking-widest">Assinados Eletronicamente</p>
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Analysis Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Card className="rounded-3xl border-none shadow-sm bg-white p-6">
-                    <CardHeader className="px-0 pt-0">
-                        <CardTitle className="text-sm font-bold uppercase text-slate-500 flex items-center gap-2">
-                            <Users className="h-4 w-4 text-blue-800" /> Ocupação de Cargos
-                        </CardTitle>
-                    </CardHeader>
-                    <div className="h-[300px] w-full flex items-center justify-center">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <RadialBarChart
-                                cx="50%"
-                                cy="50%"
-                                innerRadius="30%"
-                                outerRadius="100%"
-                                barSize={20}
-                                data={compositionData}
-                            >
-                                <RadialBar
-                                    label={{ position: 'insideStart', fill: '#fff' }}
-                                    background
-                                    dataKey="count"
-                                    cornerRadius={10}
-                                />
-                                <Legend iconSize={10} layout="vertical" verticalAlign="middle" align="right" />
-                                <Tooltip />
-                            </RadialBarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </Card>
-
-                <Card className="rounded-3xl border-none shadow-sm bg-white p-6">
-                    <CardHeader className="px-0 pt-0">
-                        <CardTitle className="text-sm font-bold uppercase text-slate-500 flex items-center gap-2">
-                            <Activity className="h-4 w-4 text-blue-800" /> Volume de Atos da Presidência
-                        </CardTitle>
-                    </CardHeader>
-                    <div className="h-[300px] w-full mt-4">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={activityData}>
-                                <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fontSize: 11, fontWeight: 'bold' }} />
-                                <YAxis hide />
-                                <Tooltip cursor={{ fill: '#f1f5f9' }} />
-                                <Bar dataKey="total" fill="#1e3a8a" radius={[10, 10, 0, 0]} barSize={40} />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                </Card>
+            {/* Composição Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                {mesaMembers.map((membro, index) => (
+                    <Card key={index} className="rounded-3xl border-none shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group">
+                        <div className={`h-2 w-full ${membro.cor}`}></div>
+                        <CardHeader className="text-center pb-2">
+                            <Badge className={`w-fit mx-auto mb-2 ${membro.cor} hover:${membro.cor}`}>
+                                {membro.cargo}
+                            </Badge>
+                            <div className="flex justify-center py-4">
+                                <Avatar className="h-32 w-32 border-4 border-white shadow-lg group-hover:scale-105 transition-transform">
+                                    <AvatarImage src={membro.foto} alt={membro.parlamentar} />
+                                    <AvatarFallback className="text-2xl font-black text-slate-300 bg-slate-50">
+                                        {membro.parlamentar.split(' ').slice(-1)[0][0]}
+                                    </AvatarFallback>
+                                </Avatar>
+                            </div>
+                            <CardTitle className="text-xl font-black text-slate-900 uppercase">
+                                {membro.parlamentar}
+                            </CardTitle>
+                            <p className="text-sm font-bold text-slate-400">{membro.partido}</p>
+                        </CardHeader>
+                        <CardContent className="text-center">
+                            {membro.biografia && <p className="text-xs text-slate-500 italic px-4">{membro.biografia}</p>}
+                        </CardContent>
+                        <CardFooter className="justify-center pb-6">
+                            <Button variant="ghost" size="sm" className="text-blue-600 font-bold hover:bg-blue-50">
+                                Ver Perfil
+                            </Button>
+                        </CardFooter>
+                    </Card>
+                ))}
             </div>
         </div>
     );

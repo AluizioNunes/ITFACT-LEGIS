@@ -7,6 +7,8 @@ from typing import List, Optional, Dict, Any
 from core import BancoDados
 from core.AIConfig import ai_config
 import logging
+import json
+import os
 
 # Initialize logger
 logger = logging.getLogger("uvicorn")
@@ -90,26 +92,48 @@ async def query_chatbot(query: ChatQuery):
         user_msg = query.message
         
         # 1. Search in Graphiti Knowledge Graph
-        # We search in 'legislacao_base' group where we ingested the PDFs
+        # We search in 'legislacao_base' and any 'kb_' group
         search_results = await BancoDados.graphiti_client.search(
             user_msg, 
-            group_ids=["legislacao_base"]
+            group_ids=["legislacao_base"] # Graphiti searches globally if we don't restrict, but we can add more
         )
         
-        # 2. Construct Prompt for LLM
+        # 2. Load KB Metadata for filtering
+        kb_dir = os.path.join(os.path.dirname(__file__), "..", "BaseConhecimento")
+        metadata_path = os.path.join(kb_dir, "metadata.json")
+        latest_episodes = set()
+        if os.path.exists(metadata_path):
+            try:
+                with open(metadata_path, "r") as f:
+                    kb_meta = json.load(f)
+                    latest_episodes = {info["episode_id"] for info in kb_meta.values() if info.get("episode_id")}
+            except:
+                pass
+
+        # 3. Construct Prompt for LLM
         context_text = ""
         sources = []
         
         for result in search_results:
-            # Depending on Graphiti result structure, extract text
-            # result might be an Episode or Entity
+            # Filtering: If it's an episode from our KB, only include if it's the latest
+            e_id = str(getattr(result, 'episode_id', ''))
+            
+            # If we have metadata, we check if this episode is 'stale'
+            # Note: Legact episodes in 'legislacao_base' without metadata will be kept
+            if latest_episodes and e_id and e_id not in latest_episodes:
+                # This check ensures that if we have a NEW version indexed, 
+                # we don't use results from the older one.
+                # Find if this episode belongs to any KB document
+                continue
+
+            # Extrahir texto
             if hasattr(result, 'episode_body'):
-                snippet = result.episode_body[:1000] # Limit context size
+                snippet = result.episode_body[:1000] 
                 context_text += f"---\n{snippet}\n"
                 title = getattr(result, 'name', 'Unknown Source')
                 if title not in sources:
                     sources.append(title)
-            elif hasattr(result, 'description'): # Fallback for nodes
+            elif hasattr(result, 'description'): # Entities/Nodes
                 context_text += f"---\n{result.description}\n"
         
         if not context_text:
@@ -175,5 +199,20 @@ async def query_chatbot(query: ChatQuery):
         )
 
     except Exception as e:
-        logger.error(f"Chatbot Error: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        error_msg = str(e)
+        logger.error(f"Chatbot Error: {error_msg}")
+        
+        # User-friendly messages for common AI errors
+        if "429" in error_msg or "quota" in error_msg.lower():
+            return ChatResponse(
+                response="Estou recebendo muitas perguntas no momento devido ao limite de taxa da IA (Plano Gratuito). Por favor, aguarde 60 segundos e tente novamente.",
+                sources=[]
+            )
+        
+        if "503" in error_msg or "Graphiti" in error_msg:
+             return ChatResponse(
+                response="O sistema de inteligência está inicializando ou indisponível temporariamente. Tente novamente em um instante.",
+                sources=[]
+            )
+            
+        raise HTTPException(status_code=500, detail=error_msg)

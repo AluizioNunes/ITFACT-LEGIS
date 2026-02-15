@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Heart, Plus, CheckCircle2, XCircle, Filter, Search, FileText, Users } from 'lucide-react';
+import { Heart, Plus, Users } from 'lucide-react';
 
 const TIPO_COLORS: Record<string, { label: string; emoji: string; color: string }> = {
     SOLIDARIEDADE: { label: 'Solidariedade', emoji: '🤝', color: 'bg-blue-500/10 text-blue-400 border-blue-500/30' },
@@ -18,6 +18,8 @@ const mockMocoes = [
     { id: '3', tipo: 'REPUDIO', autor: 'Ver. José A. Neto', destinatario: 'Governo Federal', texto: 'Moção de repúdio aos cortes no orçamento da educação...', status: 'PROTOCOLADA', data: '2026-02-10' },
     { id: '4', tipo: 'PESAR', autor: 'Mesa Diretora', destinatario: 'Família do Ex-Ver. Alberto', texto: 'Moção de pesar pelo falecimento do Ex-Vereador Alberto Mendes...', status: 'APROVADA', data: '2026-02-01' },
 ];
+
+import { formatDate } from '@/lib/utils';
 
 export default function MocoesPage() {
     const [filtro, setFiltro] = useState('TODOS');
@@ -68,7 +70,7 @@ export default function MocoesPage() {
                                     <div className="flex items-center gap-4 mt-2 text-xs text-zinc-500">
                                         <span className="flex items-center gap-1"><Users className="w-3.5 h-3.5" />{m.autor}</span>
                                         <span>Para: <span className="text-zinc-300">{m.destinatario}</span></span>
-                                        <span>{new Date(m.data).toLocaleDateString('pt-BR')}</span>
+                                        <span>{formatDate(m.data)}</span>
                                     </div>
                                 </div>
                             </div>

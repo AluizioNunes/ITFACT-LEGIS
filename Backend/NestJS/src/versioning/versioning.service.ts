@@ -47,7 +47,7 @@ export class VersioningService {
     /**
      * Obtém a versão atual (mais recente).
      */
-    async obterVersaoAtual(proposituraId: string): Promise<{ numero: number; texto: string } | null> {
+    async obterVersaoAtual(_proposituraId: string): Promise<{ numero: number; texto: string } | null> { // eslint-disable-line @typescript-eslint/no-unused-vars
         return null; // Será populado quando o banco estiver ativo
     }
 

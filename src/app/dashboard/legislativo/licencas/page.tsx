@@ -2,9 +2,10 @@
 
 import React, { useState } from 'react';
 import {
-    UserMinus, Calendar, Clock, CheckCircle2, AlertTriangle, Plus,
-    Users, ArrowLeftRight, Search, Filter, Shield, Sparkles, XCircle, Eye
+    UserMinus, Calendar, Clock, CheckCircle2, Plus,
+    ArrowLeftRight, XCircle
 } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 const TIPO_CONFIG: Record<string, { label: string; color: string }> = {
     TRATAMENTO_SAUDE: { label: 'Saúde', color: 'bg-red-500/10 text-red-400 border-red-500/30' },
@@ -97,8 +98,8 @@ export default function LicencasPage() {
                         key={status}
                         onClick={() => setFilterStatus(status)}
                         className={`px-3 py-2 text-xs rounded-lg border transition-all ${filterStatus === status
-                                ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
-                                : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
+                            ? 'bg-amber-500/20 border-amber-500/40 text-amber-300'
+                            : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white hover:border-zinc-700'
                             }`}
                     >
                         {status === 'TODOS' ? 'Todas' : status === 'ATIVA' ? 'Ativas' : 'Encerradas'}
@@ -139,7 +140,7 @@ export default function LicencasPage() {
                                     <td className="px-5 py-4">
                                         <div className="flex items-center gap-1.5 text-xs text-zinc-400">
                                             <Calendar className="w-3.5 h-3.5" />
-                                            {new Date(lic.inicio).toLocaleDateString('pt-BR')} — {new Date(lic.fim).toLocaleDateString('pt-BR')}
+                                            {formatDate(lic.inicio)} — {formatDate(lic.fim)}
                                         </div>
                                     </td>
                                     <td className="px-5 py-4">

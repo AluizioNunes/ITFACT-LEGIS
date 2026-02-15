@@ -9,7 +9,6 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    LineChart,
     Line,
     AreaChart,
     Area,
@@ -22,14 +21,9 @@ import {
 import {
     FileText,
     ArrowRightLeft,
-    Clock,
-    CheckCircle2,
-    TrendingUp,
-    Users,
     AlertCircle,
     FileCheck,
     Calendar,
-    Search,
     Filter,
     ArrowUpRight,
     ArrowDownRight,
@@ -98,20 +92,9 @@ const statusDocumentoData = [
 
 const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042'];
 
-const container = {
-    hidden: { opacity: 0 },
-    show: {
-        opacity: 1,
-        transition: {
-            staggerChildren: 0.1
-        }
-    }
-};
 
-const item = {
-    hidden: { y: 20, opacity: 0 },
-    show: { y: 0, opacity: 1 }
-};
+
+
 
 export default function DashboardPage() {
     return (
@@ -172,8 +155,8 @@ export default function DashboardPage() {
                                 </CardHeader>
                                 <CardContent className="pb-0">
                                     <div className="text-3xl font-black text-slate-900 tracking-tight">{kpi.value}</div>
-                                    <div className="h-16 mt-2 -mx-6">
-                                        <ResponsiveContainer width="100%" height="100%">
+                                    <div className="h-[64px] min-h-[64px] mt-2 -mx-6">
+                                        <ResponsiveContainer width="100%" height="100%" minWidth={0} debounce={100}>
                                             <AreaChart data={sparklineData}>
                                                 <Area
                                                     type="monotone"
@@ -210,8 +193,8 @@ export default function DashboardPage() {
                                     </div>
                                 </div>
                             </CardHeader>
-                            <CardContent className="px-2">
-                                <ResponsiveContainer width="100%" height={380}>
+                            <CardContent className="px-2 min-h-[400px]">
+                                <ResponsiveContainer width="100%" height={380} minWidth={0} debounce={100}>
                                     <ComposedChart data={productivityData}>
                                         <XAxis dataKey="Month" axisLine={false} tickLine={false} fontSize={12} fontWeight="bold" stroke="#94a3b8" dy={10} />
                                         <YAxis axisLine={false} tickLine={false} fontSize={12} fontWeight="bold" stroke="#94a3b8" />
@@ -348,7 +331,7 @@ export default function DashboardPage() {
                                 <CardDescription className="font-medium text-sm">Distribuição volumétrica de documentos</CardDescription>
                             </CardHeader>
                             <CardContent>
-                                <ResponsiveContainer width="100%" height={320}>
+                                <ResponsiveContainer width="100%" height={320} minWidth={0} debounce={100}>
                                     <BarChart data={tramitacaoSetorData} layout="vertical">
                                         <XAxis type="number" hide />
                                         <YAxis dataKey="name" type="category" stroke="#64748b" fontSize={11} fontWeight="black" tickLine={false} axisLine={false} width={100} />
@@ -368,8 +351,8 @@ export default function DashboardPage() {
                                 <CardTitle className="text-xl font-black text-slate-900 uppercase tracking-tighter">Status de Fluxo</CardTitle>
                                 <CardDescription className="font-medium text-sm">Distribuição por estado processual</CardDescription>
                             </CardHeader>
-                            <CardContent className="flex items-center justify-center">
-                                <ResponsiveContainer width="100%" height={320}>
+                            <CardContent className="flex items-center justify-center min-h-[350px]">
+                                <ResponsiveContainer width="100%" height={320} minWidth={0} debounce={100}>
                                     <PieChart>
                                         <Pie
                                             data={statusDocumentoData}

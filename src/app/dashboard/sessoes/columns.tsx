@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, Calendar, Clock, MapPin } from "lucide-react"
+import { MoreHorizontal, Calendar, Clock, MapPin } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,

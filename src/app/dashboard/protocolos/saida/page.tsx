@@ -9,22 +9,13 @@ import {
     CartesianGrid,
     Tooltip,
     ResponsiveContainer,
-    Cell,
-    PieChart,
-    Pie,
-    LineChart,
-    Line
+    Cell
 } from "recharts";
 import {
     Send,
-    ArrowUpRight,
     TrendingUp,
     CheckCircle2,
     Clock,
-    Building,
-    FileText,
-    Search,
-    Filter,
     Calendar,
     ExternalLink,
     MapPin
@@ -37,7 +28,6 @@ import {
     CardDescription
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { ProtocoloSaidaModal } from "@/components/modals/ProtocoloSaidaModal";
 

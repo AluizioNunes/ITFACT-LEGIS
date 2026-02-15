@@ -1,7 +1,7 @@
 "use client"
 
 import { ColumnDef } from "@tanstack/react-table"
-import { MoreHorizontal, ArrowUpDown, MapPin, Archive, Folder } from "lucide-react"
+import { MoreHorizontal, MapPin, Archive } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,

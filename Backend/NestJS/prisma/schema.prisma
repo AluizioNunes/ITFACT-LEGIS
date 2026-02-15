@@ -23,7 +23,7 @@ model User {
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
 
-  vereador             SimplifiedVereador?
+  parlamentar          Parlamentar?
   documents            Document[]
   proposituras         Propositura[]
   messagesSent         Message[]
@@ -34,7 +34,7 @@ model User {
   @@map("users")
 }
 
-model SimplifiedVereador {
+model Parlamentar {
   id                   String               @id @default(uuid())
   userId               String?              @unique
   user                 User?                @relation(fields: [userId], references: [id])
@@ -42,10 +42,12 @@ model SimplifiedVereador {
   nomeParlamentar      String
   cpf                  String               @unique
   email                String?
+  foto                 String?
   biografia            String?
+  anoEleito            Int?
   partidoId            String
   partido              Partido              @relation(fields: [partidoId], references: [id])
-  mandatos             MandatoVereador[]
+  mandatos             MandatoParlamentar[]
   presencas            Presenca[]
   membrosComissao      MembroComissao[]
   liderancaBancada     Bancada[]            @relation("LiderBancada")
@@ -54,9 +56,9 @@ model SimplifiedVereador {
   inscricoesSessao     InscricaoOrador[]
   votos                Voto[]
   membroMesa           MembroMesa[]
-  licencas             LicencaVereador[]
+  licencas             LicencaParlamentar[]
 
-  @@map("vereadores")
+  @@map("parlamentares")
 }
 
 model Orgao {
@@ -365,19 +367,19 @@ model AudienciaPublica {
 // ============================================================
 // LICENÇAS — Arts. 115-116 do Regimento
 // ============================================================
-model LicencaVereador {
-  id          String             @id @default(uuid())
-  vereadorId  String
-  vereador    SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+model LicencaParlamentar {
+  id          String      @id @default(uuid())
+  parlamentarId String
+  parlamentar Parlamentar @relation(fields: [parlamentarId], references: [id])
   tipo        TipoLicenca
   inicio      DateTime
   fim         DateTime?
   laudoMedico String? // Para licença saúde (3 médicos)
   suplenteId  String? // Suplente convocado
-  status      String             @default("ATIVA") // ATIVA, ENCERRADA, CANCELADA
-  createdAt   DateTime           @default(now())
+  status      String      @default("ATIVA") // ATIVA, ENCERRADA, CANCELADA
+  createdAt   DateTime    @default(now())
 
-  @@map("licencas_vereadores")
+  @@map("licencas_parlamentares")
 }
 
 // ============================================================
@@ -522,8 +524,8 @@ model Legislatura {
   numero     Int               @unique
   inicio     DateTime
   fim        DateTime
-  vereadores MandatoVereador[]
-  mesas      MesaDiretora[]
+  parlamentares MandatoParlamentar[]
+  mesas         MesaDiretora[]
   sessoes    Sessao[]
 
   @@map("legislaturas")
@@ -534,23 +536,23 @@ model Partido {
   nome       String
   sigla      String               @unique
   logo       String?
-  vereadores SimplifiedVereador[]
-  bancadas   Bancada[]
+  parlamentares Parlamentar[]
+  bancadas      Bancada[]
 
   @@map("partidos")
 }
 
-model MandatoVereador {
-  id            String             @id @default(uuid())
-  vereadorId    String
-  vereador      SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+model MandatoParlamentar {
+  id            String      @id @default(uuid())
+  parlamentarId String
+  parlamentar   Parlamentar @relation(fields: [parlamentarId], references: [id])
   legislaturaId String
-  legislatura   Legislatura        @relation(fields: [legislaturaId], references: [id])
+  legislatura   Legislatura @relation(fields: [legislaturaId], references: [id])
   inicio        DateTime
   fim           DateTime?
   status        String // ATIVO, LICENCIADO, ENCERRADO
 
-  @@map("mandatos_vereador")
+  @@map("mandatos_parlamentar")
 }
 
 model MesaDiretora {
@@ -569,9 +571,9 @@ model MembroMesa {
   id         String             @id @default(uuid())
   mesaId     String
   mesa       MesaDiretora       @relation(fields: [mesaId], references: [id])
-  vereadorId String
-  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
-  cargo      CargoMesa
+  parlamentarId String
+  parlamentar   Parlamentar        @relation(fields: [parlamentarId], references: [id])
+  cargo         CargoMesa
 
   @@map("membros_mesa")
 }
@@ -596,9 +598,9 @@ model MembroComissao {
   id         String             @id @default(uuid())
   comissaoId String
   comissao   Comissao           @relation(fields: [comissaoId], references: [id])
-  vereadorId String
-  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
-  cargo      String // PRESIDENTE, VICE_PRESIDENTE, RELATOR, TITULAR, SUPLENTE
+  parlamentarId String
+  parlamentar   Parlamentar        @relation(fields: [parlamentarId], references: [id])
+  cargo         String // PRESIDENTE, VICE_PRESIDENTE, RELATOR, TITULAR, SUPLENTE
   inicio     DateTime           @default(now())
   fim        DateTime?
 
@@ -611,9 +613,9 @@ model Bancada {
   partidoId     String?
   partido       Partido?            @relation(fields: [partidoId], references: [id])
   liderId       String?
-  lider         SimplifiedVereador? @relation("LiderBancada", fields: [liderId], references: [id])
+  lider         Parlamentar?        @relation("LiderBancada", fields: [liderId], references: [id])
   viceLiderId   String?
-  viceLider     SimplifiedVereador? @relation("ViceLiderBancada", fields: [viceLiderId], references: [id])
+  viceLider     Parlamentar?        @relation("ViceLiderBancada", fields: [viceLiderId], references: [id])
   legislaturaId String
 
   @@map("bancadas")
@@ -642,8 +644,8 @@ model Presenca {
   id              String             @id @default(uuid())
   sessaoId        String
   sessao          Sessao             @relation(fields: [sessaoId], references: [id])
-  vereadorId      String
-  vereador        SimplifiedVereador @relation(fields: [vereadorId], references: [id])
+  parlamentarId   String
+  parlamentar     Parlamentar        @relation(fields: [parlamentarId], references: [id])
   momento         DateTime           @default(now())
   status          String // PRESENTE, FALTA, FALTA_JUSTIFICADA, MISSAO_REPRESENTACAO
   impactoSubsidio Boolean            @default(false) // Se a falta gera desconto
@@ -656,9 +658,9 @@ model InscricaoOrador {
   id         String             @id @default(uuid())
   sessaoId   String
   sessao     Sessao             @relation(fields: [sessaoId], references: [id])
-  vereadorId String
-  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
-  tipo       String // PEQUENO_EXPEDIENTE, GRANDE_EXPEDIENTE, COMUNICACAO_PARLAMENTAR, TRIBUNA_POPULAR
+  parlamentarId String
+  parlamentar   Parlamentar        @relation(fields: [parlamentarId], references: [id])
+  tipo          String // PEQUENO_EXPEDIENTE, GRANDE_EXPEDIENTE, COMUNICACAO_PARLAMENTAR, TRIBUNA_POPULAR
   ordem      Int
   tempoGasto Int                @default(0) // Segundos
 
@@ -697,9 +699,9 @@ model Voto {
   id         String             @id @default(uuid())
   votacaoId  String
   votacao    Votacao            @relation(fields: [votacaoId], references: [id])
-  vereadorId String
-  vereador   SimplifiedVereador @relation(fields: [vereadorId], references: [id])
-  escolha    String // FAVORAVEL, CONTRARIO, ABSTENCAO, AUSENTE
+  parlamentarId String
+  parlamentar   Parlamentar        @relation(fields: [parlamentarId], references: [id])
+  escolha       String // FAVORAVEL, CONTRARIO, ABSTENCAO, AUSENTE
 
   @@map("votos")
 }
@@ -719,7 +721,7 @@ model EmendaOrcamentaria {
   orcamentoId String
   orcamento   Orcamento          @relation(fields: [orcamentoId], references: [id])
   autorId     String
-  autor       SimplifiedVereador @relation(fields: [autorId], references: [id])
+  autor       Parlamentar @relation(fields: [autorId], references: [id])
   valor       Decimal
   descricao   String
 

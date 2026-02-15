@@ -21,7 +21,11 @@ from routers.Armazenamento import router as armazenamento_router
 from routers.SemanticoIA import router as semantico_ia_router, setup_pgvector
 from routers.FilaMensagens import router as fila_router
 from routers.SystemRouter import router as system_router
-from routers.ChatbotRouter import router as chatbot_router # Added import
+from routers.ChatbotRouter import router as chatbot_router
+from routers.IntegracoesRouter import router as integracoes_router
+from routers.EditorRouter import router as editor_router
+from routers.KnowledgeBaseRouter import router as kb_router
+from routers.PackageRouter import router as package_router
 
 # -- Rate limiter --
 limiter = Limiter(key_func=get_remote_address)
@@ -54,6 +58,10 @@ app.include_router(semantico_ia_router)
 app.include_router(fila_router)
 app.include_router(system_router)
 app.include_router(chatbot_router)
+app.include_router(integracoes_router)
+app.include_router(editor_router)
+app.include_router(kb_router)
+app.include_router(package_router)
 
 
 # -- Ciclo de Vida --

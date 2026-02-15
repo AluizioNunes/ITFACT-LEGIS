@@ -20,9 +20,7 @@ import {
     Building2,
     Shield,
     History,
-    TrendingUp,
-    Settings,
-    FileText
+    Settings
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { CasaLegislativaModal } from "@/components/modals/CasaLegislativaModal";

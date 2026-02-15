@@ -3,9 +3,10 @@
 import React, { useState } from 'react';
 import {
     Bell, Clock, AlertTriangle, CheckCircle2, XCircle, Calendar,
-    Filter, Search, Sparkles, FileText, Users, Shield, RefreshCcw,
-    Timer, ArrowRight, Eye, BellOff
+    Sparkles, Shield, RefreshCcw,
+    Timer, Eye, BellOff
 } from 'lucide-react';
+import { formatDate } from '@/lib/utils';
 
 const PRIORIDADE_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
     CRITICA: { label: 'Crítica', color: 'text-red-400', bg: 'bg-red-500/10 border-red-500/40' },
@@ -116,8 +117,8 @@ export default function AlertasPage() {
                             key={p}
                             onClick={() => setFiltro(p)}
                             className={`px-3 py-2 text-xs rounded-lg border transition-all ${filtro === p
-                                    ? 'bg-red-500/20 border-red-500/40 text-red-300'
-                                    : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'
+                                ? 'bg-red-500/20 border-red-500/40 text-red-300'
+                                : 'bg-zinc-900/60 border-zinc-800 text-zinc-400 hover:text-white'
                                 }`}
                         >
                             {p === 'TODOS' ? 'Todos' : PRIORIDADE_CONFIG[p]?.label || p}
@@ -141,7 +142,7 @@ export default function AlertasPage() {
                     const vencido = alerta.diasRestantes < 0;
                     return (
                         <div key={alerta.id} className={`bg-zinc-900/60 border rounded-xl p-5 transition-all hover:border-zinc-700 ${vencido ? 'border-red-500/40 bg-red-500/5' :
-                                alerta.prioridade === 'CRITICA' ? 'border-red-500/20' : 'border-zinc-800'
+                            alerta.prioridade === 'CRITICA' ? 'border-red-500/20' : 'border-zinc-800'
                             }`}>
                             <div className="flex items-start justify-between gap-4">
                                 <div className="flex items-start gap-4 flex-1">
@@ -172,7 +173,7 @@ export default function AlertasPage() {
                                         <div className="flex items-center gap-3 mt-2 text-xs text-zinc-500">
                                             <span className="flex items-center gap-1">
                                                 <Calendar className="w-3.5 h-3.5" />
-                                                Prazo: {new Date(alerta.prazo).toLocaleDateString('pt-BR')}
+                                                Prazo: {formatDate(alerta.prazo)}
                                             </span>
                                             {alerta.comissao && (
                                                 <span className="flex items-center gap-1">
@@ -186,8 +187,8 @@ export default function AlertasPage() {
 
                                 <div className="text-right">
                                     <p className={`text-2xl font-bold ${vencido ? 'text-red-400' :
-                                            alerta.diasRestantes <= 3 ? 'text-red-400' :
-                                                alerta.diasRestantes <= 7 ? 'text-amber-400' : 'text-emerald-400'
+                                        alerta.diasRestantes <= 3 ? 'text-red-400' :
+                                            alerta.diasRestantes <= 7 ? 'text-amber-400' : 'text-emerald-400'
                                         }`}>
                                         {vencido ? `${Math.abs(alerta.diasRestantes)}d` : `${alerta.diasRestantes}d`}
                                     </p>

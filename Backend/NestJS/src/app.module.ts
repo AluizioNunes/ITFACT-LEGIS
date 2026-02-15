@@ -63,6 +63,7 @@ import { AtasIaModule } from './atas-ia/atas-ia.module';
 import { VersioningModule } from './versioning/versioning.module';
 import { PortalCidadaoModule } from './portal-cidadao/portal-cidadao.module';
 import { TceAmModule } from './tce-am/tce-am.module';
+import { CommonModule } from './common/common.module';
 
 // Rate Limiting (#11)
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
@@ -138,6 +139,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
         VersioningModule,
         PortalCidadaoModule,
         TceAmModule,
+        CommonModule,
     ],
 
     controllers: [AppController],

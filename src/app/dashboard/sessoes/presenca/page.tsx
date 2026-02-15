@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import {
-    Users, CheckCircle2, XCircle, Clock, Search, Filter,
-    AlertTriangle, DollarSign, BarChart3, UserCheck, UserX
+    CheckCircle2, Clock, DollarSign, UserCheck
 } from 'lucide-react';
 
 const mockPresencas = [

@@ -1,0 +1,28 @@
+{
+    "test_document": {
+        "version": 3,
+        "history": [
+            {
+                "version": 1,
+                "filename": "test_document_v1.pdf",
+                "episode_id": null,
+                "timestamp": "2026-02-14T21:09:26.094235"
+            },
+            {
+                "version": 2,
+                "filename": "test_document_v2.pdf",
+                "episode_id": null,
+                "timestamp": "2026-02-14T21:14:55.535929"
+            },
+            {
+                "version": 3,
+                "filename": "test_document_v3.pdf",
+                "episode_id": null,
+                "timestamp": "2026-02-15T00:09:40.597321"
+            }
+        ],
+        "current_file": "test_document_v3.pdf",
+        "created_at": "2026-02-15T00:09:40.597321",
+        "episode_id": null
+    }
+}

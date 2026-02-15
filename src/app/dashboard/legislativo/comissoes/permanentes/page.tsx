@@ -4,12 +4,10 @@ import React from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-    Users,
     Gavel,
     Clock,
     TrendingUp,
     Plus,
-    Search,
     BookOpen,
     Filter
 } from "lucide-react";
@@ -23,8 +21,6 @@ import {
     Cell,
     PieChart,
     Pie,
-    RadialBarChart,
-    RadialBar,
     Legend
 } from "recharts";
 

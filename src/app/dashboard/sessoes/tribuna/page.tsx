@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Mic, Users, Clock, Plus, CheckCircle2, MessageSquare, Calendar, Timer } from 'lucide-react';
+import React from 'react';
+import { Mic, Users, Plus, MessageSquare, Timer } from 'lucide-react';
 
 const mockTribuna = [
     { id: '1', sessao: 'SO #14/2026', entidade: 'Assoc. Moradores do Centro', representante: 'João Lima', tema: 'Pavimentação da Rua XV de Novembro', tempo: 10, status: 'CONCLUIDO' },

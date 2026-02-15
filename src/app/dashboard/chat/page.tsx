@@ -7,10 +7,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Send, Hash, Users, Building, Globe, Layers } from "lucide-react";
 import { format } from "date-fns";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 interface Message {
     id: string;
@@ -35,7 +35,7 @@ export default function ChatPage() {
             transports: ["websocket"],
         });
 
-        setSocket(newSocket);
+        setTimeout(() => setSocket(newSocket), 0);
 
         newSocket.on("connect", () => {
             console.log("Connected to chat socket");
@@ -136,7 +136,7 @@ export default function ChatPage() {
                 <CardContent className="flex-1 overflow-hidden p-0 flex flex-col">
                     <ScrollArea className="flex-1 p-4">
                         <div className="space-y-4">
-                            {messages.map((msg, i) => {
+                            {messages.map((msg) => {
                                 const isMe = msg.senderId === user?.id;
                                 return (
                                     <div

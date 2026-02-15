@@ -9,6 +9,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
     title: "ITFACT LEGIS - Sistema de Gestão Legislativa",
     description: "Sistema completo de gestão legislativa com recursos avançados",
+    icons: {
+        icon: "/favicon.svg",
+    },
 };
 
 export default function RootLayout({

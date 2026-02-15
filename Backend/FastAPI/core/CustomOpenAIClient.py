@@ -8,6 +8,23 @@ class CustomOpenAIClient(OpenAIClient):
     Custom OpenAIClient to handle structured output via standard chat completion
     instead of unsupported /responses endpoint (which seems specific to Zep or failing with Google).
     """
+
+    async def chat_completion(
+        self,
+        messages: list[ChatCompletionMessageParam],
+        model: str | None = None,
+        temperature: float | None = None,
+        max_tokens: int | None = None,
+    ) -> str:
+        """Standard chat completion wrapper."""
+        response = await self.client.chat.completions.create(
+            model=model or self.config.model,
+            messages=messages,
+            temperature=temperature if temperature is not None else 0.7,
+            max_tokens=max_tokens if max_tokens is not None else 1000
+        )
+        return response.choices[0].message.content or ""
+
     async def _create_structured_completion(
         self,
         model: str,

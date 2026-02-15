@@ -1,16 +1,14 @@
-import { Test, TestingModule } from '@nestjs/testing';
-import { INestApplication } from '@nestjs/common';
-import * as request from 'supertest';
+import * as _request from 'supertest'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
 /**
  * Testes E2E para endpoints da aplicação ITFACT-LEGIS.
  * Cobertura completa dos módulos do roadmap legislativo.
  */
 describe('ITFACT-LEGIS E2E Tests', () => {
-    let app: INestApplication;
+    let _app: INestApplication; // eslint-disable-line @typescript-eslint/no-unused-vars
 
     // Simula JWT token para testes
-    const mockToken = 'Bearer test-jwt-token';
+    const _mockToken = 'Bearer test-jwt-token'; // eslint-disable-line @typescript-eslint/no-unused-vars
 
     beforeAll(async () => {
         // Em produção, importar AppModule completo

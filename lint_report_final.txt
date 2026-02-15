@@ -1,0 +1,50 @@
+
+> itfact-legis-frontend@1.0.0 lint
+> eslint .
+
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\page.tsx
+   95:7  warning  'container' is assigned a value but never used  @typescript-eslint/no-unused-vars
+  105:7  warning  'item' is assigned a value but never used       @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\protocolos\pesquisa\page.tsx
+  20:5  warning  'CardHeader' is defined but never used       @typescript-eslint/no-unused-vars
+  21:5  warning  'CardTitle' is defined but never used        @typescript-eslint/no-unused-vars
+  22:5  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\app\dashboard\sistema\integracoes\page.tsx
+    7:13  warning  'Key' is defined but never used    @typescript-eslint/no-unused-vars
+  345:18  warning  'error' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\AssistantWidget.tsx
+  78:13  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\GenericListPage.tsx
+  3:52  warning  'CardDescription' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\layout\Navbar.tsx
+  16:10  warning  'useUI' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\modals\ProposituraModal.tsx
+  15:10  warning  'cn' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\ui\data-table.tsx
+  41:19  warning  Compilation Skipped: Use of incompatible library
+
+This API returns functions which cannot be memoized without leading to stale UI. To prevent this, by default React Compiler will skip memoizing this component/hook. However, you may see issues if values from this API are passed to other components/hooks that are memoized.
+
+D:\PROJETOS\ITFACT-LEGIS\src\components\ui\data-table.tsx:41:19
+  39 |     const [columnFilters, setColumnFilters] = React.useState<any>([])
+  40 |
+> 41 |     const table = useReactTable({
+     |                   ^^^^^^^^^^^^^ TanStack Table's `useReactTable()` API returns functions that cannot be memoized safely
+  42 |         data,
+  43 |         columns,
+  44 |         getCoreRowModel: getCoreRowModel(),  react-hooks/incompatible-library
+
+D:\PROJETOS\ITFACT-LEGIS\src\hooks\use-toast.ts
+  21:7  warning  'actionTypes' is assigned a value but only used as a type  @typescript-eslint/no-unused-vars
+
+Ô£û 13 problems (0 errors, 13 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

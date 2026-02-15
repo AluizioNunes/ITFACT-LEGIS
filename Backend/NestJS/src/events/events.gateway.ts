@@ -19,7 +19,6 @@ export class EventsGateway {
     @SubscribeMessage('message')
     handleMessage(
         @MessageBody() data: any,
-        @ConnectedSocket() client: Socket,
     ): void {
         this.server.emit('message', data);
     }

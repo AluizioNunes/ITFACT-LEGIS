@@ -1,0 +1,22 @@
+
+> itfact-legis-nestjs@1.0.0 lint
+> eslint "{src,apps,libs,test}/**/*.ts" --fix
+
+Pages directory cannot be found at D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\pages or D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\pages. If using a custom path, please configure with the `no-html-link-for-pages` rule in your eslint config file.
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\auth\auth.service.ts
+  16:31  warning  '_' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\versioning\versioning.service.ts
+  50:28  warning  '_proposituraId' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\src\workflow\workflow.service.ts
+  43:64  warning  '_observacao' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\PROJETOS\ITFACT-LEGIS\Backend\NestJS\test\e2e\roadmap.e2e-spec.ts
+   1:13  warning  '_request' is defined but never used             @typescript-eslint/no-unused-vars
+   8:9   warning  '_app' is defined but never used                 @typescript-eslint/no-unused-vars
+  11:11  warning  '_mockToken' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+Ô£û 6 problems (0 errors, 6 warnings)
+

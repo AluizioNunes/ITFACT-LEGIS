@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { Shield, FileSearch, AlertTriangle, CheckCircle, Clock, Download, ExternalLink, Calendar, ChevronRight } from "lucide-react";
+import { Shield, FileSearch, Download, Calendar } from "lucide-react";
 
 const mockPareceres = [
     { exercicio: 2025, parecer: "COM_RESSALVAS", relator: "Cons. Ricardo Menezes", data: "15/11/2025", processo: "TCE-2025/00847", irregularidades: 3, recomendacoes: 8, status: "VOTADO_CAMARA" },

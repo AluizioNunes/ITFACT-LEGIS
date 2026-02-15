@@ -1,0 +1,18 @@
+
+--- TESTANDO PERGUNTA DO USUÁRIO ---
+Pergunta: Qual o tempo de uma mandato do presidente da e qunatas vezes ele pode se reeleger?
+   Enviando requisição para /chat/query...
+
+--- RESPOSTA DA IA ---
+ No contexto fornecido, não foi possível encontrar informações específicas sobre quantos anos um Presidente da Câmara Municipal tem como mandato ou quantas vezes ele pode se reeleger. Para obter uma resposta precisa, é necessário consultar a Lei Orgânica da Câmara Municipal na qual essas informações estão especificadas.
+
+Por enquanto, em geral, os mandatos de cargos eleitos no Brasil podem durar até quatro anos, conforme previsto pela Constituição Federal. Entretanto, é necessário consultar a legislação específica da Câmara Municipal para saber se existem disposições particulares sobre o assunto.
+
+Em relação à reeleição, também é importante notar que de acordo com a Constituição Federal, as regras de reeleição podem variar de um cargo eleito ao outro e de uma legislação municipal ao outra. Portanto, novamente, é necessário consultar a Lei Orgânica da Câmara Municipal para conhecer se existem restrições específicas à reeleição do seu Presidente da Câmara.
+
+Referências:
+- Constituição Federal - Artigo 31, caput e artigo 40, § 2º: https://www.planalto.gov.br/ccivil_03/Constituicao/LeiTexto/leitxt3.htm#art40_2
+- Lei Orgânica da Câmara Municipal de São Paulo - Artigo 91, II: http://portal.cmsampa.sp.gov.br/arquivos/docs/textoslegislativos/leiorgancia_16073_2005.pdf
+- Lei Orgânica da Câmara Municipal de Brasília - Artigo 19, III: http://www.camara.df.gov.br/leituraseletronica/lo_cmb/arquivos/LO-CMB.pdf
+
+Fontes: []

@@ -5,7 +5,6 @@ import {
     Search,
     Filter,
     FileText,
-    Calendar,
     ArrowRight,
     History,
     Zap,
@@ -17,10 +16,7 @@ import {
 } from "lucide-react";
 import {
     Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-    CardDescription
+    CardContent
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -195,7 +191,7 @@ export default function ProtocolosPesquisaPage() {
                                     <h4 className="text-lg font-black uppercase tracking-tighter">Dica de Busca Avançada</h4>
                                     <p className="text-slate-400 text-sm font-medium">
                                         Utilize aspas para buscar termos exatos ou o caractere asterisco (*) para completar palavras.
-                                        Exemplo: <span className="text-blue-400 font-mono">"Secretaria de Saúde" * 2026</span>
+                                        Exemplo: <span className="text-blue-400 font-mono">&quot;Secretaria de Saúde&quot; * 2026</span>
                                     </p>
                                 </div>
                             </div>
